@@ -271,3 +271,65 @@ TEST(MatrixFloatTest, CreateIdentityMatrix)
     EXPECT_TRUE(matrix == expectedResult);
     EXPECT_TRUE(matrix2.dot(matrix) == matrix2);
 }
+
+TEST(MatrixFloatTest, TestAddPadding)
+{
+    ntt::Matrix matrix = ntt::Matrix::create_from_vector_vector({{1, 0, 0},
+                                                                 {0, 1, 0},
+                                                                 {0, 0, 1}});
+
+    ntt::Matrix expectedResult = ntt::Matrix::create_from_vector_vector({{0, 0, 0, 0, 0},
+                                                                         {0, 1, 0, 0, 0},
+                                                                         {0, 0, 1, 0, 0},
+                                                                         {0, 0, 0, 1, 0},
+                                                                         {0, 0, 0, 0, 0}});
+
+    ntt::Matrix result = matrix.add_padding(1);
+    EXPECT_TRUE(result == expectedResult);
+}
+
+TEST(MatrixFloatTest, TestSliding)
+{
+    // create random 4x4 matrix
+    ntt::Matrix matrix = ntt::Matrix::create_from_vector_vector({{1, 2, 3, 4},
+                                                                 {5, 6, 7, 8},
+                                                                 {9, 10, 11, 12},
+                                                                 {13, 14, 15, 16}});
+
+    struct MaxPoolingData
+    {
+        ntt::Matrix result;
+
+        MaxPoolingData(size_t rows, size_t columns) : result(rows, columns) {}
+    };
+
+    ntt::sliding_callback callback = [](size_t startRow,
+                                        size_t startColumn,
+                                        size_t endRow,
+                                        size_t endColumn,
+                                        ntt::Matrix &matrix,
+                                        void *data)
+    {
+        MaxPoolingData *maxPoolingData = (MaxPoolingData *)data;
+        float max = matrix.get_element(startRow, startColumn);
+        for (size_t i = startRow; i < endRow; i++)
+        {
+            for (size_t j = startColumn; j < endColumn; j++)
+            {
+                if (matrix.get_element(i, j) > max)
+                {
+                    max = matrix.get_element(i, j);
+                }
+            }
+        }
+        maxPoolingData->result.set_element(startRow / 2, startColumn / 2, max);
+    };
+
+    MaxPoolingData maxPoolingData(matrix.get_rows() / 2, matrix.get_columns() / 2);
+    matrix.sliding(callback, 2, 2, 2, 2, &maxPoolingData);
+
+    ntt::Matrix expectedResult = ntt::Matrix::create_from_vector_vector({{6, 8},
+                                                                         {14, 16}});
+
+    EXPECT_TRUE(maxPoolingData.result == expectedResult);
+}

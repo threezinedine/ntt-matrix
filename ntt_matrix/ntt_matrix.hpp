@@ -42,8 +42,17 @@ namespace
 
     bool isEqual(float a, float b);
 #endif
-
         constexpr NTT_MATRIX_API value_type default_value = 0;
+
+        class Matrix;
+
+        typedef void (*sliding_callback)(
+            size_t startRow,
+            size_t startColumn,
+            size_t endRow,
+            size_t endColumn,
+            Matrix &matrix,
+            void *data);
 
         /**
          * The main object of the library, it will contains the whole information
@@ -99,6 +108,15 @@ namespace
             Matrix add(const Matrix &other);
             Matrix negative();
             Matrix subtract(const Matrix &other);
+
+            Matrix add_padding(size_t padding);
+
+            void sliding(sliding_callback callback,
+                         size_t window_col,
+                         size_t window_row,
+                         size_t stride_col,
+                         size_t stride_row,
+                         void *data = nullptr);
 
             /**
              * Compare two matrices
@@ -253,6 +271,37 @@ namespace
             }
 
             return result;
+        }
+
+        Matrix Matrix::add_padding(size_t padding)
+        {
+            Matrix result(m_rows + padding * 2, m_columns + padding * 2, default_value);
+
+            for (size_t i = padding; i < m_rows + padding; i++)
+            {
+                for (size_t j = padding; j < m_columns + padding; j++)
+                {
+                    result.set_element(i, j, get_element(i - padding, j - padding));
+                }
+            }
+
+            return result;
+        }
+
+        void Matrix::sliding(sliding_callback callback,
+                             size_t window_col,
+                             size_t window_row,
+                             size_t stride_col,
+                             size_t stride_row,
+                             void *data)
+        {
+            for (size_t i = 0; i < m_rows; i += stride_row)
+            {
+                for (size_t j = 0; j < m_columns; j += stride_col)
+                {
+                    callback(i, j, i + window_row, j + window_col, *this, data);
+                }
+            }
         }
 
         Matrix Matrix::operator-(const Matrix &other)
