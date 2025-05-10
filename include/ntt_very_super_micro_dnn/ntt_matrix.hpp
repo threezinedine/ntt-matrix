@@ -6,35 +6,35 @@
 #include <cmath>
 #include <limits>
 
-#if defined(NTT_MATRIX_STATIC)
-#define NTT_MATRIX_API static
-#elif defined(NTT_MATRIX_EXTERN)
-#define NTT_MATRIX_API extern
+#if defined(NTT_MICRO_NN_STATIC)
+#define NTT_MICRO_NN_API static
+#elif defined(NTT_MICRO_NN_EXTERN)
+#define NTT_MICRO_NN_API extern
 #else
-#define NTT_MATRIX_API
+#define NTT_MICRO_NN_API
 #endif
 
-#ifdef NTT_MATRIX_IMPLEMENTATION
+#ifdef NTT_MICRO_NN_IMPLEMENTATION
 #include <cstring>
 #include <cstdlib>
 #endif
 
-#ifdef NTT_MATRIX_IMPLEMENTATION
+#ifdef NTT_MICRO_NN_IMPLEMENTATION
 namespace
 {
 #endif
     namespace ntt
     {
 
-#if defined(NTT_MATRIX_I8)
+#if defined(NTT_MICRO_NN_I8)
         using value_type = int8_t;
-#elif defined(NTT_MATRIX_I16)
+#elif defined(NTT_MICRO_NN_I16)
     using value_type = int16_t;
     constexpr value_type default_value = 0;
-#elif defined(NTT_MATRIX_I32)
+#elif defined(NTT_MICRO_NN_I32)
     using value_type = int32_t;
     constexpr value_type default_value = 0;
-#elif defined(NTT_MATRIX_I64)
+#elif defined(NTT_MICRO_NN_I64)
     using value_type = int64_t;
     constexpr value_type default_value = 0;
 #else
@@ -42,7 +42,7 @@ namespace
 
     bool isEqual(float a, float b);
 #endif
-        constexpr NTT_MATRIX_API value_type default_value = 0;
+        constexpr NTT_MICRO_NN_API value_type default_value = 0;
 
         class Matrix;
 
@@ -105,6 +105,9 @@ namespace
              */
             Matrix transpose();
 
+            void reshape(size_t rows, size_t columns);
+            Matrix toShape(size_t rows, size_t columns);
+
             Matrix add(const Matrix &other);
             Matrix negative();
             Matrix subtract(const Matrix &other);
@@ -150,13 +153,55 @@ namespace
             value_type *m_data;
         };
 
+        /**
+         * Base class for all layers of the neural network.
+         */
+        class Layer
+        {
+        public:
+            virtual Matrix forward(const Matrix &input) = 0;
+        };
+
+        class FullyConnectedLayer : public Layer
+        {
+        public:
+            FullyConnectedLayer(size_t input_size, size_t output_size);
+            FullyConnectedLayer(const Matrix &weights, const Matrix &biases);
+            FullyConnectedLayer(const Matrix &weights, value_type biases);
+            ~FullyConnectedLayer();
+
+            virtual Matrix forward(const Matrix &input) override;
+
+        private:
+            Matrix m_weights;
+            Matrix m_biases;
+        };
+
+        class ReLU : public Layer
+        {
+        public:
+            virtual Matrix forward(const Matrix &input) override;
+        };
+
+        class Softmax : public Layer
+        {
+        public:
+            virtual Matrix forward(const Matrix &input) override;
+        };
+
+        class Sigmoid : public Layer
+        {
+        public:
+            virtual Matrix forward(const Matrix &input) override;
+        };
+
 /**
  * The Macro which will be used for noticing the compiler which will create the
  *      implementation file. This pattern can be used without the use of the CMake
  *      to create the implementation file.
  * @todo: paraphase this comment again
  */
-#ifdef NTT_MATRIX_IMPLEMENTATION
+#ifdef NTT_MICRO_NN_IMPLEMENTATION
         bool isEqual(float a, float b)
         {
             return std::fabs(a - b) < std::numeric_limits<float>::epsilon();
@@ -224,10 +269,41 @@ namespace
             return result;
         }
 
+        void Matrix::reshape(size_t rows, size_t columns)
+        {
+            if (rows * columns != m_rows * m_columns)
+            {
+                char message[256];
+                snprintf(
+                    message, sizeof(message),
+                    "The new size (%zu, %zu) does not match with the previous size (%zu, %zu)",
+                    rows, columns, m_rows, m_columns);
+
+                throw std::invalid_argument(message);
+            }
+
+            m_rows = rows;
+            m_columns = columns;
+        }
+
+        Matrix Matrix::toShape(size_t rows, size_t columns)
+        {
+            Matrix result(*this);
+            result.reshape(rows, columns);
+            return result;
+        }
+
         Matrix Matrix::add(const Matrix &other)
         {
             if (m_rows != other.m_rows || m_columns != other.m_columns)
-                throw std::invalid_argument("The matrices must have the same size");
+            {
+                char message[256];
+                snprintf(
+                    message, sizeof(message),
+                    "The matrix with the size (%zu, %zu) cannot be added to the matrix with the size (%zu, %zu)",
+                    m_rows, m_columns, other.m_rows, other.m_columns);
+                throw std::invalid_argument(message);
+            }
 
             Matrix result(m_rows, m_columns);
 
@@ -260,7 +336,14 @@ namespace
         Matrix Matrix::subtract(const Matrix &other)
         {
             if (m_rows != other.m_rows || m_columns != other.m_columns)
-                throw std::invalid_argument("The matrices must have the same size");
+            {
+                char message[256];
+                snprintf(
+                    message, sizeof(message),
+                    "The matrix with the size (%zu, %zu) cannot be subtracted from the matrix with the size (%zu, %zu)",
+                    m_rows, m_columns, other.m_rows, other.m_columns);
+                throw std::invalid_argument(message);
+            }
 
             Matrix result(m_rows, m_columns);
             for (size_t i = 0; i < m_rows; i++)
@@ -363,7 +446,7 @@ namespace
             if (m_rows != other.m_rows || m_columns != other.m_columns)
                 return false;
 
-#if defined(NTT_MATRIX_I8) || defined(NTT_MATRIX_I16) || defined(NTT_MATRIX_I32) || defined(NTT_MATRIX_I64)
+#if defined(NTT_MICRO_NN_I8) || defined(NTT_MICRO_NN_I16) || defined(NTT_MICRO_NN_I32) || defined(NTT_MICRO_NN_I64)
             return memcmp(m_data, other.m_data, m_rows * m_columns * sizeof(value_type)) == 0;
 #else
             for (size_t i = 0; i < m_rows; i++)
@@ -376,9 +459,9 @@ namespace
             }
 
             return true;
-#endif // NTT_MATRIX_I8 || NTT_MATRIX_I16 || NTT_MATRIX_I32 || NTT_MATRIX_I64
+#endif // NTT_MICRO_NN_I8 || NTT_MICRO_NN_I16 || NTT_MICRO_NN_I32 || NTT_MICRO_NN_I64
         }
-#endif // NTT_MATRIX_IMPLEMENTATION
+#endif // NTT_MICRO_NN_IMPLEMENTATION
 
         Matrix Matrix::create_from_vector_vector(const std::vector<std::vector<value_type>> &vector)
         {
@@ -420,8 +503,82 @@ namespace
             }
             return ss.str();
         }
-    } // namespace ntt
 
-#ifdef NTT_MATRIX_IMPLEMENTATION
+        FullyConnectedLayer::FullyConnectedLayer(size_t input_size, size_t output_size)
+            : m_weights(input_size, output_size, 1.0f), m_biases(output_size, 1, 0.0f)
+        {
+        }
+
+        FullyConnectedLayer::FullyConnectedLayer(const Matrix &weights, value_type biases)
+            : m_weights(weights), m_biases(weights.get_columns(), 1, biases)
+        {
+        }
+
+        FullyConnectedLayer::FullyConnectedLayer(const Matrix &weights, const Matrix &biases)
+            : m_weights(weights), m_biases(biases)
+        {
+        }
+
+        FullyConnectedLayer::~FullyConnectedLayer()
+        {
+        }
+
+        Matrix FullyConnectedLayer::forward(const Matrix &input)
+        {
+            return m_weights * input + m_biases;
+        }
+
+        Matrix ReLU::forward(const Matrix &input)
+        {
+            Matrix result(input.get_rows(), input.get_columns());
+            for (size_t i = 0; i < input.get_rows(); i++)
+            {
+                for (size_t j = 0; j < input.get_columns(); j++)
+                {
+                    value_type newValue = input.get_element(i, j) > 0 ? input.get_element(i, j) : 0;
+                    result.set_element(i, j, newValue);
+                }
+            }
+            return result;
+        }
+
+        Matrix Sigmoid::forward(const Matrix &input)
+        {
+            Matrix result(input.get_rows(), input.get_columns());
+            for (size_t i = 0; i < input.get_rows(); i++)
+            {
+                for (size_t j = 0; j < input.get_columns(); j++)
+                {
+                    result.set_element(i, j, 1.0f / (1.0f + std::exp(-input.get_element(i, j))));
+                }
+            }
+            return result;
+        }
+
+        Matrix Softmax::forward(const Matrix &input)
+        {
+            Matrix result(input.get_rows(), input.get_columns());
+            value_type sum = 0.0f;
+            for (size_t i = 0; i < input.get_rows(); i++)
+            {
+                for (size_t j = 0; j < input.get_columns(); j++)
+                {
+                    sum += std::exp(input.get_element(i, j));
+                }
+            }
+
+            for (size_t i = 0; i < input.get_rows(); i++)
+            {
+                for (size_t j = 0; j < input.get_columns(); j++)
+                {
+                    result.set_element(i, j, std::exp(input.get_element(i, j)) / sum);
+                }
+            }
+
+            return result;
+        }
+    }
+
+#ifdef NTT_MICRO_NN_IMPLEMENTATION
 } // namespace
 #endif

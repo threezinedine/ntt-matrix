@@ -6,5 +6,5 @@ set build=%base%\build\Windows\MinGW\Debug
 set test=%build%\tests\
 
 cd %test%
-NTTMatrixTests.exe
+NTTMicroDNNTests.exe
 cd %current%

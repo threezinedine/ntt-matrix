@@ -1,8 +1,8 @@
 #include <gtest/gtest.h>
-#define NTT_MATRIX_STATIC
-#define NTT_MATRIX_I8
-#define NTT_MATRIX_IMPLEMENTATION
-#include <ntt_matrix.hpp>
+#define NTT_MICRO_NN_STATIC
+#define NTT_MICRO_NN_I8
+#define NTT_MICRO_NN_IMPLEMENTATION
+#include <ntt_very_super_micro_dnn/ntt_matrix.hpp>
 
 TEST(MatrixI8Test, DefaultConstructor)
 {

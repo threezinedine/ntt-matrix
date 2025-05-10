@@ -1,7 +1,7 @@
 #include <cstdio>
 
-#define NTT_MATRIX_IMPLEMENTATION
-#include <ntt_matrix.hpp>
+#define NTT_MICRO_NN_IMPLEMENTATION
+#include <ntt_very_super_micro_dnn/ntt_matrix.hpp>
 
 using namespace ntt;
 

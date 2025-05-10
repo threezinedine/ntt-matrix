@@ -2,9 +2,10 @@
 #include <gmock/gmock.h>
 #include <cstdio>
 
-#define NTT_MATRIX_STATIC
-#define NTT_MATRIX_IMPLEMENTATION
-#include <ntt_matrix.hpp>
+#define NTT_MICRO_NN_STATIC
+#define NTT_MICRO_NN_FLOAT
+#define NTT_MICRO_NN_IMPLEMENTATION
+#include <ntt_very_super_micro_dnn/ntt_matrix.hpp>
 
 TEST(MatrixFloatTest, DefaultConstructor)
 {
@@ -64,9 +65,8 @@ TEST(MatrixFloatTest, CopyConstructor)
 
 TEST(MatrixFloatTest, TestCreateMatrixFromVectorVector)
 {
-    std::vector<std::vector<float>> vector = {{0.35, 0.45},
-                                              {0.4, 0.5}};
-    ntt::Matrix matrix = ntt::Matrix::create_from_vector_vector(vector);
+    ntt::Matrix matrix = ntt::Matrix::create_from_vector_vector({{0.35, 0.45},
+                                                                 {0.4, 0.5}});
 
     EXPECT_EQ(matrix.get_rows(), 2);
     EXPECT_EQ(matrix.get_columns(), 2);
@@ -346,4 +346,32 @@ TEST(MatrixFloatTest, TestSliding)
                                                                          {14, 16}});
 
     EXPECT_TRUE(maxPoolingData.result == expectedResult);
+}
+
+TEST(MatrixFloatTest, MatrixFloatTest_Reshape_Test)
+{
+    ntt::Matrix matrix = ntt::Matrix::create_from_vector_vector({{1, 2, 3, 4},
+                                                                 {5, 6, 7, 8}});
+
+    ntt::Matrix expectedResult = ntt::Matrix::create_from_vector_vector({{1, 2},
+                                                                         {3, 4},
+                                                                         {5, 6},
+                                                                         {7, 8}});
+
+    matrix.reshape(4, 2);
+    EXPECT_TRUE(matrix == expectedResult);
+}
+
+TEST(MatrixFloatTest, MatrixFloatTest_ToShape_Test)
+{
+    ntt::Matrix matrix = ntt::Matrix::create_from_vector_vector({{1, 2, 3, 4},
+                                                                 {5, 6, 7, 8}});
+
+    ntt::Matrix expectedResult = ntt::Matrix::create_from_vector_vector({{1, 2},
+                                                                         {3, 4},
+                                                                         {5, 6},
+                                                                         {7, 8}});
+
+    ntt::Matrix result = matrix.toShape(4, 2);
+    EXPECT_TRUE(result == expectedResult);
 }
