@@ -272,6 +272,20 @@ TEST(MatrixFloatTest, CreateIdentityMatrix)
     EXPECT_TRUE(matrix2.dot(matrix) == matrix2);
 }
 
+TEST(MatrixFloatTest, TestDivide)
+{
+    ntt::Matrix matrix = ntt::Matrix::create_from_vector_vector({{1, 2, 3},
+                                                                 {4, 5, 6},
+                                                                 {7, 8, 9}});
+
+    ntt::Matrix expectedResult = ntt::Matrix::create_from_vector_vector({{0.5, 1, 1.5},
+                                                                         {2, 2.5, 3},
+                                                                         {3.5, 4, 4.5}});
+
+    ntt::Matrix result = matrix / 2;
+    EXPECT_TRUE(result == expectedResult);
+}
+
 TEST(MatrixFloatTest, TestAddPadding)
 {
     ntt::Matrix matrix = ntt::Matrix::create_from_vector_vector({{1, 0, 0},

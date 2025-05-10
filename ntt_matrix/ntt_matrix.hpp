@@ -131,6 +131,7 @@ namespace
             Matrix operator-(value_type value);
             Matrix operator*(const Matrix &other);
             Matrix operator*(value_type value);
+            Matrix operator/(value_type value);
 
             std::string to_string() const;
 
@@ -337,6 +338,20 @@ namespace
                 for (size_t j = 0; j < m_columns; j++)
                 {
                     result.set_element(i, j, get_element(i, j) * value);
+                }
+            }
+
+            return result;
+        }
+
+        Matrix Matrix::operator/(value_type value)
+        {
+            Matrix result(m_rows, m_columns);
+            for (size_t i = 0; i < m_rows; i++)
+            {
+                for (size_t j = 0; j < m_columns; j++)
+                {
+                    result.set_element(i, j, get_element(i, j) / value);
                 }
             }
 
