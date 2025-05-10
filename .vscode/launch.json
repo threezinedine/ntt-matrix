@@ -10,7 +10,14 @@
             "request": "launch",
             "program": "${workspaceFolder}/build/Windows/MinGW/Debug/examples/${fileBasenameNoExtension}.exe",
             "cwd": "${workspaceFolder}/build/Windows/MinGW/Debug/examples",
+        },
+        {
+            "name": "Test (Debug)",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/Windows/MinGW/Debug/tests/NTTMatrixTests.exe",
+            "cwd": "${workspaceFolder}/build/Windows/MinGW/Debug/tests",
         }
-
+        
     ]
 }

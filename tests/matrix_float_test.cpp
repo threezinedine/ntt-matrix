@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
+#include <cstdio>
 
 #define NTT_MATRIX_STATIC
 #define NTT_MATRIX_IMPLEMENTATION
@@ -61,60 +62,65 @@ TEST(MatrixFloatTest, CopyConstructor)
     EXPECT_EQ(matrix2.get_element(2, 2), matrix.get_element(2, 2));
 }
 
+TEST(MatrixFloatTest, TestCreateMatrixFromVectorVector)
+{
+    std::vector<std::vector<float>> vector = {{0.35, 0.45},
+                                              {0.4, 0.5}};
+    ntt::Matrix matrix = ntt::Matrix::create_from_vector_vector(vector);
+
+    EXPECT_EQ(matrix.get_rows(), 2);
+    EXPECT_EQ(matrix.get_columns(), 2);
+    EXPECT_THAT(matrix.get_element(0, 0), testing::FloatEq(0.35));
+    EXPECT_THAT(matrix.get_element(0, 1), testing::FloatEq(0.45));
+    EXPECT_THAT(matrix.get_element(1, 0), testing::FloatEq(0.4));
+    EXPECT_THAT(matrix.get_element(1, 1), testing::FloatEq(0.5));
+}
+
 TEST(MatrixFloatTest, DotProduct)
 {
-    // [[0.35, 0.45],
-    //  [0.4, 0.5]]
-    ntt::Matrix matrix(2, 2);
-    matrix.set_element(0, 0, 0.35);
-    matrix.set_element(0, 1, 0.45);
-    matrix.set_element(1, 0, 0.4);
-    matrix.set_element(1, 1, 0.5);
+    ntt::Matrix matrix = ntt::Matrix::create_from_vector_vector({{0.35, 0.45},
+                                                                 {0.4, 0.5}});
 
-    // [[1, 1],
-    //  [1, 1]]
-    ntt::Matrix matrix2(2, 2, 1);
+    ntt::Matrix matrix2 = ntt::Matrix::create_from_vector_vector({{1, 1},
+                                                                  {1, 1}});
 
     // results: [[0.8, 0.8],
     //           [0.9, 0.9]]
-    ntt::Matrix result = matrix.dot(matrix2);
+    ntt::Matrix expectedResult = ntt::Matrix::create_from_vector_vector({{0.8, 0.8},
+                                                                         {0.9, 0.9}});
 
-    EXPECT_THAT(result.get_element(0, 0), testing::FloatEq(0.8));
-    EXPECT_THAT(result.get_element(0, 1), testing::FloatEq(0.8));
-    EXPECT_THAT(result.get_element(1, 0), testing::FloatEq(0.9));
-    EXPECT_THAT(result.get_element(1, 1), testing::FloatEq(0.9));
+    ntt::Matrix result = matrix.dot(matrix2);
+    EXPECT_TRUE(result == expectedResult);
 }
 
 TEST(MatrixFloatTest, Equality)
 {
-    ntt::Matrix matrix(2, 2);
-    matrix.set_element(0, 0, 0.35);
-    matrix.set_element(0, 1, 0.45);
-    matrix.set_element(1, 0, 0.4);
-    matrix.set_element(1, 1, 0.5);
+    ntt::Matrix matrix = ntt::Matrix::create_from_vector_vector({{0.35, 0.45},
+                                                                 {0.4, 0.5}});
 
-    ntt::Matrix matrix2(2, 2);
-    matrix2.set_element(0, 0, 0.35);
-    matrix2.set_element(0, 1, 0.45);
-    matrix2.set_element(1, 0, 0.4);
-    matrix2.set_element(1, 1, 0.5);
+    ntt::Matrix matrix2 = ntt::Matrix::create_from_vector_vector({{0.35, 0.45},
+                                                                  {0.4, 0.5}});
 
     EXPECT_TRUE(matrix == matrix2);
 }
 
 TEST(MatrixFloatTest, Inequality)
 {
-    ntt::Matrix matrix(2, 2);
-    matrix.set_element(0, 0, 0.35);
-    matrix.set_element(0, 1, 0.45);
-    matrix.set_element(1, 0, 0.4);
-    matrix.set_element(1, 1, 0.5);
+    ntt::Matrix matrix = ntt::Matrix::create_from_vector_vector({{0.35, 0.45},
+                                                                 {0.4, 0.5}});
 
-    ntt::Matrix matrix2(2, 2);
-    matrix2.set_element(0, 0, 0.35);
-    matrix2.set_element(0, 1, 0.45);
-    matrix2.set_element(1, 0, 0.4);
-    matrix2.set_element(1, 1, 0.0);
+    ntt::Matrix matrix2 = ntt::Matrix::create_from_vector_vector({{0.35, 0.45},
+                                                                  {0.4, 0.0}});
 
     EXPECT_FALSE(matrix == matrix2);
+}
+
+TEST(MatrixFloatTest, TestNonMatchedSizeDotProduct)
+{
+    ntt::Matrix matrix = ntt::Matrix::create_from_vector_vector({{0.35},
+                                                                 {0.4}});
+    ntt::Matrix matrix2 = ntt::Matrix::create_from_vector_vector({{1, 1, 1},
+                                                                  {1, 1, 1}});
+
+    EXPECT_THROW(matrix.dot(matrix2), std::invalid_argument);
 }

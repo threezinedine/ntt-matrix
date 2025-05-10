@@ -1,5 +1,10 @@
 #pragma once
 #include <cstdint>
+#include <stdexcept>
+#include <vector>
+#include <sstream>
+#include <cmath>
+#include <limits>
 
 #if defined(NTT_MATRIX_STATIC)
 #define NTT_MATRIX_API static
@@ -34,6 +39,8 @@ namespace
     constexpr value_type default_value = 0;
 #else
     using value_type = float;
+
+    bool isEqual(float a, float b);
 #endif
 
         constexpr NTT_MATRIX_API value_type default_value = 0;
@@ -90,6 +97,15 @@ namespace
              */
             bool operator==(const Matrix &other) const;
 
+            std::string to_string() const;
+
+            /**
+             * Create a matrix from a vector of vectors.
+             * @param vector: the vector of vectors to be converted.
+             * @return: the created matrix.
+             */
+            static Matrix create_from_vector_vector(const std::vector<std::vector<value_type>> &vector);
+
         private:
             size_t m_rows;
             size_t m_columns;
@@ -103,6 +119,11 @@ namespace
  * @todo: paraphase this comment again
  */
 #ifdef NTT_MATRIX_IMPLEMENTATION
+        bool isEqual(float a, float b)
+        {
+            return std::fabs(a - b) < std::numeric_limits<float>::epsilon();
+        }
+
         Matrix::Matrix(size_t rows, size_t columns, value_type defaultValue)
             : m_rows(rows), m_columns(columns)
         {
@@ -131,6 +152,9 @@ namespace
 
         Matrix Matrix::dot(const Matrix &other)
         {
+            if (m_columns != other.m_rows)
+                throw std::invalid_argument("The number of columns of the first matrix must be equal to the number of rows of the second matrix");
+
             Matrix result(m_rows, other.m_columns);
 
             for (size_t i = 0; i < m_rows; i++)
@@ -159,15 +183,44 @@ namespace
             {
                 for (size_t j = 0; j < m_columns; j++)
                 {
-                    if (get_element(i, j) != other.get_element(i, j))
+                    if (!isEqual(get_element(i, j), other.get_element(i, j)))
                         return false;
                 }
             }
 
             return true;
-#endif
+#endif // NTT_MATRIX_I8 || NTT_MATRIX_I16 || NTT_MATRIX_I32 || NTT_MATRIX_I64
         }
-#endif
+#endif // NTT_MATRIX_IMPLEMENTATION
+
+        Matrix Matrix::create_from_vector_vector(const std::vector<std::vector<value_type>> &vector)
+        {
+            Matrix matrix(vector.size(), vector[0].size());
+
+            for (size_t i = 0; i < vector.size(); i++)
+            {
+                for (size_t j = 0; j < vector[i].size(); j++)
+                {
+                    matrix.set_element(i, j, vector[i][j]);
+                }
+            }
+
+            return matrix;
+        }
+
+        std::string Matrix::to_string() const
+        {
+            std::stringstream ss;
+            for (size_t i = 0; i < m_rows; i++)
+            {
+                for (size_t j = 0; j < m_columns; j++)
+                {
+                    ss << get_element(i, j) << " ";
+                }
+                ss << "\n";
+            }
+            return ss.str();
+        }
     } // namespace ntt
 
 #ifdef NTT_MATRIX_IMPLEMENTATION
