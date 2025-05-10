@@ -91,11 +91,28 @@ namespace
             Matrix dot(const Matrix &other);
 
             /**
+             * The transpose operation of the matrix, which will swap the rows and columns of the matrix.
+             * @return: the transposed matrix.
+             */
+            Matrix transpose();
+
+            Matrix add(const Matrix &other);
+            Matrix negative();
+            Matrix subtract(const Matrix &other);
+
+            /**
              * Compare two matrices
              * @param other: the matrix to be compared.
              * @return: true if the matrices are equal, false otherwise.
              */
             bool operator==(const Matrix &other) const;
+
+            Matrix operator+(const Matrix &other);
+            Matrix operator+(value_type value);
+            Matrix operator-(const Matrix &other);
+            Matrix operator-(value_type value);
+            Matrix operator*(const Matrix &other);
+            Matrix operator*(value_type value);
 
             std::string to_string() const;
 
@@ -105,6 +122,8 @@ namespace
              * @return: the created matrix.
              */
             static Matrix create_from_vector_vector(const std::vector<std::vector<value_type>> &vector);
+
+            static Matrix create_identity_matrix(size_t size);
 
         private:
             size_t m_rows;
@@ -171,6 +190,110 @@ namespace
             return result;
         }
 
+        Matrix Matrix::transpose()
+        {
+            Matrix result(m_columns, m_rows);
+
+            for (size_t i = 0; i < m_rows; i++)
+            {
+                for (size_t j = 0; j < m_columns; j++)
+                {
+                    result.set_element(j, i, get_element(i, j));
+                }
+            }
+
+            return result;
+        }
+
+        Matrix Matrix::add(const Matrix &other)
+        {
+            if (m_rows != other.m_rows || m_columns != other.m_columns)
+                throw std::invalid_argument("The matrices must have the same size");
+
+            Matrix result(m_rows, m_columns);
+
+            for (size_t i = 0; i < m_rows; i++)
+            {
+                for (size_t j = 0; j < m_columns; j++)
+                {
+                    result.set_element(i, j, get_element(i, j) + other.get_element(i, j));
+                }
+            }
+
+            return result;
+        }
+
+        Matrix Matrix::negative()
+        {
+            Matrix result(m_rows, m_columns);
+
+            for (size_t i = 0; i < m_rows; i++)
+            {
+                for (size_t j = 0; j < m_columns; j++)
+                {
+                    result.set_element(i, j, -get_element(i, j));
+                }
+            }
+
+            return result;
+        }
+
+        Matrix Matrix::subtract(const Matrix &other)
+        {
+            if (m_rows != other.m_rows || m_columns != other.m_columns)
+                throw std::invalid_argument("The matrices must have the same size");
+
+            Matrix result(m_rows, m_columns);
+            for (size_t i = 0; i < m_rows; i++)
+            {
+                for (size_t j = 0; j < m_columns; j++)
+                {
+                    result.set_element(i, j, get_element(i, j) - other.get_element(i, j));
+                }
+            }
+
+            return result;
+        }
+
+        Matrix Matrix::operator-(const Matrix &other)
+        {
+            return subtract(other);
+        }
+
+        Matrix Matrix::operator-(value_type value)
+        {
+            return subtract(Matrix(m_rows, m_columns, value));
+        }
+
+        Matrix Matrix::operator+(const Matrix &other)
+        {
+            return add(other);
+        }
+
+        Matrix Matrix::operator+(value_type value)
+        {
+            return add(Matrix(m_rows, m_columns, value));
+        }
+
+        Matrix Matrix::operator*(const Matrix &other)
+        {
+            return dot(other);
+        }
+
+        Matrix Matrix::operator*(value_type value)
+        {
+            Matrix result(m_rows, m_columns);
+            for (size_t i = 0; i < m_rows; i++)
+            {
+                for (size_t j = 0; j < m_columns; j++)
+                {
+                    result.set_element(i, j, get_element(i, j) * value);
+                }
+            }
+
+            return result;
+        }
+
         bool Matrix::operator==(const Matrix &other) const
         {
             if (m_rows != other.m_rows || m_columns != other.m_columns)
@@ -203,6 +326,18 @@ namespace
                 {
                     matrix.set_element(i, j, vector[i][j]);
                 }
+            }
+
+            return matrix;
+        }
+
+        Matrix Matrix::create_identity_matrix(size_t size)
+        {
+            Matrix matrix(size, size);
+
+            for (size_t i = 0; i < size; i++)
+            {
+                matrix.set_element(i, i, 1);
             }
 
             return matrix;

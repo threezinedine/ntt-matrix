@@ -115,6 +115,18 @@ TEST(MatrixFloatTest, Inequality)
     EXPECT_FALSE(matrix == matrix2);
 }
 
+TEST(MatrixFloatTest, TestMutiply)
+{
+    ntt::Matrix matrix = ntt::Matrix::create_from_vector_vector({{0.35, 0.45},
+                                                                 {0.4, 0.5}});
+
+    ntt::Matrix expectedResult = ntt::Matrix::create_from_vector_vector({{0.7, 0.9},
+                                                                         {0.8, 1}});
+
+    ntt::Matrix result = matrix * 2;
+    EXPECT_TRUE(result == expectedResult);
+}
+
 TEST(MatrixFloatTest, TestNonMatchedSizeDotProduct)
 {
     ntt::Matrix matrix = ntt::Matrix::create_from_vector_vector({{0.35},
@@ -123,4 +135,139 @@ TEST(MatrixFloatTest, TestNonMatchedSizeDotProduct)
                                                                   {1, 1, 1}});
 
     EXPECT_THROW(matrix.dot(matrix2), std::invalid_argument);
+}
+
+TEST(MatrixFloatTest, TestTranspose)
+{
+    ntt::Matrix matrix = ntt::Matrix::create_from_vector_vector({{0.35, 0.45},
+                                                                 {0.4, 0.5}});
+
+    ntt::Matrix expectedResult = ntt::Matrix::create_from_vector_vector({{0.35, 0.4},
+                                                                         {0.45, 0.5}});
+
+    ntt::Matrix result = matrix.transpose();
+    EXPECT_TRUE(result == expectedResult);
+}
+
+TEST(MatrixFloatTest, TestVectorTranspose)
+{
+    ntt::Matrix matrix = ntt::Matrix::create_from_vector_vector({{0.35, 0.45}});
+
+    ntt::Matrix expectedResult = ntt::Matrix::create_from_vector_vector({{0.35},
+                                                                         {0.45}});
+
+    ntt::Matrix result = matrix.transpose();
+    EXPECT_TRUE(result == expectedResult);
+}
+
+TEST(MatrixFloatTest, AddAnotherMatrix)
+{
+    ntt::Matrix matrix = ntt::Matrix::create_from_vector_vector({{0.35, 0.45},
+                                                                 {0.4, 0.5}});
+
+    ntt::Matrix matrix2 = ntt::Matrix::create_from_vector_vector({{1, 1},
+                                                                  {1, 1}});
+
+    ntt::Matrix expectedResult = ntt::Matrix::create_from_vector_vector({{1.35, 1.45},
+                                                                         {1.4, 1.5}});
+
+    ntt::Matrix result = matrix + matrix2;
+    EXPECT_TRUE(result == expectedResult);
+}
+
+TEST(MatrixFloatTest, TestNonMatchedSizeAdd)
+{
+    ntt::Matrix matrix = ntt::Matrix::create_from_vector_vector({{0.35, 0.45},
+                                                                 {0.4, 0.5}});
+
+    ntt::Matrix matrix2 = ntt::Matrix::create_from_vector_vector({{1, 1, 1},
+                                                                  {1, 1, 1}});
+
+    EXPECT_THROW(matrix + matrix2, std::invalid_argument);
+}
+
+TEST(MatrixFloatTest, AddMatrixWithNumber)
+{
+    ntt::Matrix matrix = ntt::Matrix::create_from_vector_vector({{0.35, 0.45},
+                                                                 {0.4, 0.5}});
+
+    ntt::Matrix expectedResult = ntt::Matrix::create_from_vector_vector({{1.35, 1.45},
+                                                                         {1.4, 1.5}});
+
+    ntt::Matrix result = matrix + 1;
+    EXPECT_TRUE(result == expectedResult);
+}
+
+TEST(MatrixFloatTest, TestSubtractAnotherMatrix)
+{
+    ntt::Matrix matrix = ntt::Matrix::create_from_vector_vector({{0.35, 0.45},
+                                                                 {0.4, 0.5}});
+
+    ntt::Matrix matrix2 = ntt::Matrix::create_from_vector_vector({{1, 1},
+                                                                  {1, 1}});
+}
+
+TEST(MatrixFloatTest, TestSubtractMatrixWithNumber)
+{
+    ntt::Matrix matrix = ntt::Matrix::create_from_vector_vector({{1.35, 1.45},
+                                                                 {1.4, 1.5}});
+
+    ntt::Matrix expectedResult = ntt::Matrix::create_from_vector_vector({{0.35, 0.45},
+                                                                         {0.4, 0.5}});
+
+    ntt::Matrix result = matrix - 1;
+    EXPECT_TRUE(result == expectedResult);
+}
+
+TEST(MatrixFloatTest, TestNonMatchedSizeSubtract)
+{
+    ntt::Matrix matrix = ntt::Matrix::create_from_vector_vector({{0.35, 0.45},
+                                                                 {0.4, 0.5}});
+
+    ntt::Matrix matrix2 = ntt::Matrix::create_from_vector_vector({{1, 1, 1},
+                                                                  {1, 1, 1}});
+
+    EXPECT_THROW(matrix - matrix2, std::invalid_argument);
+}
+
+TEST(MatrixFloatTest, TestNegative)
+{
+    ntt::Matrix matrix = ntt::Matrix::create_from_vector_vector({{0.35, 0.45},
+                                                                 {0.4, 0.5}});
+
+    ntt::Matrix expectedResult = ntt::Matrix::create_from_vector_vector({{-0.35, -0.45},
+                                                                         {-0.4, -0.5}});
+
+    ntt::Matrix result = matrix.negative();
+    EXPECT_TRUE(result == expectedResult);
+}
+
+TEST(MatrixFloatTest, TestSubtract)
+{
+    ntt::Matrix matrix = ntt::Matrix::create_from_vector_vector({{0.35, 0.45},
+                                                                 {0.4, 0.5}});
+
+    ntt::Matrix matrix2 = ntt::Matrix::create_from_vector_vector({{0.2, 0.12},
+                                                                  {0.8, 1.5}});
+
+    ntt::Matrix expectedResult = ntt::Matrix::create_from_vector_vector({{0.15, 0.33},
+                                                                         {-0.4, -1}});
+
+    ntt::Matrix result = matrix - matrix2;
+    EXPECT_TRUE(result == expectedResult);
+}
+
+TEST(MatrixFloatTest, CreateIdentityMatrix)
+{
+    ntt::Matrix matrix = ntt::Matrix::create_identity_matrix(3);
+    ntt::Matrix matrix2 = ntt::Matrix::create_from_vector_vector({{3, -2.3, 0},
+                                                                  {2.1, 0, 0.2},
+                                                                  {0, 0, 0}});
+
+    ntt::Matrix expectedResult = ntt::Matrix::create_from_vector_vector({{1, 0, 0},
+                                                                         {0, 1, 0},
+                                                                         {0, 0, 1}});
+
+    EXPECT_TRUE(matrix == expectedResult);
+    EXPECT_TRUE(matrix2.dot(matrix) == matrix2);
 }
