@@ -32,3 +32,70 @@
 *.app
 
 build/
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribution / packaging
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-eggs/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Installer logs
+pip-log.txt
+pip-delete-this.txt
+pip-download-cache/
+pip-req-tracker/
+*.pypirc
+.env
+.venv
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+coverage/
+*.coverage
+*.lcov
+nosetests.xml
+*.xml
+*.py,cover
+*.mo
+*.pot
+
+# Translations
+*.mo
+*.pot
+
+# Django stuff:
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+*.orig
+*~
+
+# OS or Editor folders
+.DS_Store
+Thumbs.db
+._*
+*.swp
+
+venv/

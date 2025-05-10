@@ -2,5 +2,8 @@
     "files.associations": {
         "*.py": "python",
         "sstream": "cpp"
+    },
+    "search.exclude": {
+        "C:/Users/Acer/Project/ntt-very-super-micro-dnn/examples/*.tasm"
     }
 }

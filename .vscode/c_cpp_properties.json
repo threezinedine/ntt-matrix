@@ -11,6 +11,9 @@
                 "_UNICODE",
                 "NTT_MICRO_NN_IMPLEMENTATION"
             ],
+            "C_Cpp.files.exclude": [
+                "**/*.tasm"
+            ],
             "windowsSdkVersion": "10.0.22621.0",
             "compilerPath": "cl.exe",
             "cStandard": "c17",

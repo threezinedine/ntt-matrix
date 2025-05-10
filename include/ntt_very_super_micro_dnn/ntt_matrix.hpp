@@ -145,6 +145,8 @@ namespace
              */
             static Matrix create_from_vector_vector(const std::vector<std::vector<value_type>> &vector);
 
+            static Matrix create_from_vector(const std::vector<value_type> &vector);
+
             static Matrix create_identity_matrix(size_t size);
 
         private:
@@ -236,7 +238,15 @@ namespace
         Matrix Matrix::dot(const Matrix &other)
         {
             if (m_columns != other.m_rows)
-                throw std::invalid_argument("The number of columns of the first matrix must be equal to the number of rows of the second matrix");
+            {
+                char message[512];
+                snprintf(
+                    message, sizeof(message),
+                    "The first matrix has size (%zu, %zu) which is not matching "
+                    "with the second matrix with size (%zu, %zu)",
+                    m_rows, m_columns, other.m_rows, other.m_columns);
+                throw std::invalid_argument(message);
+            }
 
             Matrix result(m_rows, other.m_columns);
 
@@ -473,6 +483,18 @@ namespace
                 {
                     matrix.set_element(i, j, vector[i][j]);
                 }
+            }
+
+            return matrix;
+        }
+
+        Matrix Matrix::create_from_vector(const std::vector<value_type> &vector)
+        {
+            Matrix matrix(1, vector.size());
+
+            for (size_t i = 0; i < vector.size(); i++)
+            {
+                matrix.set_element(0, i, vector[i]);
             }
 
             return matrix;
