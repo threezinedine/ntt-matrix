@@ -17,6 +17,8 @@ int main(void)
     ntt::Matrix matrix2(3, 3, 1);
     print_matrix(matrix2);
 
+    // dot product
+
     return 0;
 }
 
