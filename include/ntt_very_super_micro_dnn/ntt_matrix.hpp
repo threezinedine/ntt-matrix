@@ -47,14 +47,14 @@ namespace
 #endif
         constexpr NTT_MICRO_NN_API value_type default_value = 0;
 
-        class Tensor;
+        class Matrix;
 
         typedef void (*sliding_callback)(
             size_t startRow,
             size_t startColumn,
             size_t endRow,
             size_t endColumn,
-            Tensor &matrix,
+            Matrix &matrix,
             void *data);
 
         /**
@@ -63,7 +63,7 @@ namespace
          *      between the matrices. This library is designed specifically for the
          *      Neural Network library (header-only) project.
          */
-        class Tensor
+        class Matrix
         {
         public:
             /**
@@ -74,15 +74,15 @@ namespace
              * @param defaultValue: the default value of the matrix.
              * @param name: the name of the matrix (for debugging purposes).
              */
-            Tensor(size_t rows, size_t columns, value_type defaultValue = default_value);
+            Matrix(size_t rows, size_t columns, value_type defaultValue = default_value);
 
             /**
              * Copy constructor of the matrix.
              * @param other: the matrix to be copied.
              */
-            Tensor(const Tensor &other);
+            Matrix(const Matrix &other);
 
-            ~Tensor();
+            ~Matrix();
 
             inline size_t get_rows() const { return m_rows; }
             inline size_t get_columns() const { return m_columns; }
@@ -101,24 +101,24 @@ namespace
              * @param other: the matrix to be multiplied.
              * @return: the result of the dot product operation.
              */
-            Tensor dot(const Tensor &other);
+            Matrix dot(const Matrix &other);
 
             /**
              * The transpose operation of the matrix, which will swap the rows and columns of the matrix.
              * @return: the transposed matrix.
              */
-            Tensor transpose();
+            Matrix transpose();
 
             void reshape(size_t rows, size_t columns);
-            Tensor toShape(size_t rows, size_t columns);
+            Matrix toShape(size_t rows, size_t columns);
 
-            Tensor add(const Tensor &other);
-            Tensor negative();
-            Tensor subtract(const Tensor &other);
+            Matrix add(const Matrix &other);
+            Matrix negative();
+            Matrix subtract(const Matrix &other);
 
-            Tensor add_padding(size_t padding);
+            Matrix add_padding(size_t padding);
 
-            Tensor cross_correlation(const Tensor &other, size_t stride = 1);
+            Matrix cross_correlation(const Matrix &other, size_t stride = 1);
 
             enum Axis
             {
@@ -133,7 +133,7 @@ namespace
              *      the whole matrix.
              * @return: the maximum value of the matrix.
              */
-            Tensor max(Axis axis = Axis::MATRIX);
+            Matrix max(Axis axis = Axis::MATRIX);
 
             size_t argmax();
 
@@ -149,16 +149,16 @@ namespace
              * @param other: the matrix to be compared.
              * @return: true if the matrices are equal, false otherwise.
              */
-            bool operator==(const Tensor &other) const;
-            void operator=(const Tensor &other);
+            bool operator==(const Matrix &other) const;
+            void operator=(const Matrix &other);
 
-            Tensor operator+(const Tensor &other);
-            Tensor operator+(value_type value);
-            Tensor operator-(const Tensor &other);
-            Tensor operator-(value_type value);
-            Tensor operator*(const Tensor &other);
-            Tensor operator*(value_type value);
-            Tensor operator/(value_type value);
+            Matrix operator+(const Matrix &other);
+            Matrix operator+(value_type value);
+            Matrix operator-(const Matrix &other);
+            Matrix operator-(value_type value);
+            Matrix operator*(const Matrix &other);
+            Matrix operator*(value_type value);
+            Matrix operator/(value_type value);
 
             std::string to_string() const;
 
@@ -167,11 +167,11 @@ namespace
              * @param vector: the vector of vectors to be converted.
              * @return: the created matrix.
              */
-            static Tensor create_from_vector_vector(const std::vector<std::vector<value_type>> &vector);
+            static Matrix create_from_vector_vector(const std::vector<std::vector<value_type>> &vector);
 
-            static Tensor create_from_vector(const std::vector<value_type> &vector);
+            static Matrix create_from_vector(const std::vector<value_type> &vector);
 
-            static Tensor create_identity_matrix(size_t size);
+            static Matrix create_identity_matrix(size_t size);
 
         private:
             size_t m_rows;
@@ -185,41 +185,41 @@ namespace
         class Layer
         {
         public:
-            virtual Tensor forward(const Tensor &input) = 0;
+            virtual Matrix forward(const Matrix &input) = 0;
         };
 
         class FullyConnectedLayer : public Layer
         {
         public:
             FullyConnectedLayer(size_t input_size, size_t output_size);
-            FullyConnectedLayer(const Tensor &weights, const Tensor &biases);
-            FullyConnectedLayer(const Tensor &weights, value_type biases);
+            FullyConnectedLayer(const Matrix &weights, const Matrix &biases);
+            FullyConnectedLayer(const Matrix &weights, value_type biases);
             ~FullyConnectedLayer();
 
-            virtual Tensor forward(const Tensor &input) override;
+            virtual Matrix forward(const Matrix &input) override;
 
         private:
-            Tensor m_weights;
-            Tensor m_biases;
+            Matrix m_weights;
+            Matrix m_biases;
         };
 
         class ReLU : public Layer
         {
         public:
-            virtual Tensor forward(const Tensor &input) override;
+            virtual Matrix forward(const Matrix &input) override;
         };
 
         class Softmax : public Layer
         {
         public:
-            virtual Tensor forward(const Tensor &input) override;
+            virtual Matrix forward(const Matrix &input) override;
         };
 
         class ClipLayer : public Layer
         {
         public:
             ClipLayer(value_type min, value_type max);
-            virtual Tensor forward(const Tensor &input) override;
+            virtual Matrix forward(const Matrix &input) override;
 
         private:
             value_type m_min;
@@ -229,7 +229,7 @@ namespace
         class Sigmoid : public Layer
         {
         public:
-            virtual Tensor forward(const Tensor &input) override;
+            virtual Matrix forward(const Matrix &input) override;
         };
 
 /**
@@ -244,7 +244,7 @@ namespace
             return std::fabs(a - b) < std::numeric_limits<float>::epsilon();
         }
 
-        Tensor::Tensor(size_t rows, size_t columns, value_type defaultValue)
+        Matrix::Matrix(size_t rows, size_t columns, value_type defaultValue)
             : m_rows(rows), m_columns(columns), m_data(nullptr)
         {
             m_data = (value_type *)malloc(rows * columns * sizeof(value_type));
@@ -258,7 +258,7 @@ namespace
             }
         }
 
-        Tensor::~Tensor()
+        Matrix::~Matrix()
         {
             if (m_data != nullptr)
             {
@@ -267,14 +267,14 @@ namespace
             }
         }
 
-        Tensor::Tensor(const Tensor &other)
+        Matrix::Matrix(const Matrix &other)
             : m_rows(other.m_rows), m_columns(other.m_columns)
         {
             m_data = (value_type *)malloc(m_rows * m_columns * sizeof(value_type));
             memcpy(m_data, other.m_data, m_rows * m_columns * sizeof(value_type));
         }
 
-        Tensor Tensor::dot(const Tensor &other)
+        Matrix Matrix::dot(const Matrix &other)
         {
             if (m_columns != other.m_rows)
             {
@@ -287,7 +287,7 @@ namespace
                 throw std::invalid_argument(message);
             }
 
-            Tensor result(m_rows, other.m_columns);
+            Matrix result(m_rows, other.m_columns);
 
             for (size_t i = 0; i < m_rows; i++)
             {
@@ -303,9 +303,9 @@ namespace
             return result;
         }
 
-        Tensor Tensor::transpose()
+        Matrix Matrix::transpose()
         {
-            Tensor result(m_columns, m_rows);
+            Matrix result(m_columns, m_rows);
 
             for (size_t i = 0; i < m_rows; i++)
             {
@@ -318,7 +318,7 @@ namespace
             return result;
         }
 
-        void Tensor::reshape(size_t rows, size_t columns)
+        void Matrix::reshape(size_t rows, size_t columns)
         {
             if (rows * columns != m_rows * m_columns)
             {
@@ -335,14 +335,14 @@ namespace
             m_columns = columns;
         }
 
-        Tensor Tensor::toShape(size_t rows, size_t columns)
+        Matrix Matrix::toShape(size_t rows, size_t columns)
         {
-            Tensor result(*this);
+            Matrix result(*this);
             result.reshape(rows, columns);
             return result;
         }
 
-        Tensor Tensor::add(const Tensor &other)
+        Matrix Matrix::add(const Matrix &other)
         {
             if (m_rows != other.m_rows || m_columns != other.m_columns)
             {
@@ -354,7 +354,7 @@ namespace
                 throw std::invalid_argument(message);
             }
 
-            Tensor result(m_rows, m_columns);
+            Matrix result(m_rows, m_columns);
 
             for (size_t i = 0; i < m_rows; i++)
             {
@@ -367,9 +367,9 @@ namespace
             return result;
         }
 
-        Tensor Tensor::negative()
+        Matrix Matrix::negative()
         {
-            Tensor result(m_rows, m_columns);
+            Matrix result(m_rows, m_columns);
 
             for (size_t i = 0; i < m_rows; i++)
             {
@@ -382,7 +382,7 @@ namespace
             return result;
         }
 
-        Tensor Tensor::subtract(const Tensor &other)
+        Matrix Matrix::subtract(const Matrix &other)
         {
             if (m_rows != other.m_rows || m_columns != other.m_columns)
             {
@@ -394,7 +394,7 @@ namespace
                 throw std::invalid_argument(message);
             }
 
-            Tensor result(m_rows, m_columns);
+            Matrix result(m_rows, m_columns);
             for (size_t i = 0; i < m_rows; i++)
             {
                 for (size_t j = 0; j < m_columns; j++)
@@ -406,9 +406,9 @@ namespace
             return result;
         }
 
-        Tensor Tensor::add_padding(size_t padding)
+        Matrix Matrix::add_padding(size_t padding)
         {
-            Tensor result(m_rows + padding * 2, m_columns + padding * 2, default_value);
+            Matrix result(m_rows + padding * 2, m_columns + padding * 2, default_value);
 
             for (size_t i = padding; i < m_rows + padding; i++)
             {
@@ -421,11 +421,11 @@ namespace
             return result;
         }
 
-        Tensor Tensor::cross_correlation(const Tensor &other, size_t stride)
+        Matrix Matrix::cross_correlation(const Matrix &other, size_t stride)
         {
             size_t resultRows = (m_rows - other.m_rows) / stride + 1;
             size_t resultColumns = (m_columns - other.m_columns) / stride + 1;
-            Tensor result(resultRows, resultColumns, default_value);
+            Matrix result(resultRows, resultColumns, default_value);
 
             for (size_t i = 0; i < resultRows; i++)
             {
@@ -451,7 +451,7 @@ namespace
             return result;
         }
 
-        void Tensor::sliding(sliding_callback callback,
+        void Matrix::sliding(sliding_callback callback,
                              size_t window_col,
                              size_t window_row,
                              size_t stride_col,
@@ -467,11 +467,11 @@ namespace
             }
         }
 
-        Tensor Tensor::max(Axis axis)
+        Matrix Matrix::max(Axis axis)
         {
             if (axis == Axis::MATRIX)
             {
-                Tensor result(1, 1);
+                Matrix result(1, 1);
                 for (size_t i = 0; i < m_rows; i++)
                 {
                     for (size_t j = 0; j < m_columns; j++)
@@ -487,7 +487,7 @@ namespace
 
             if (axis == Axis::ROW)
             {
-                Tensor result(m_rows, 1);
+                Matrix result(m_rows, 1);
                 for (size_t i = 0; i < m_rows; i++)
                 {
                     for (size_t j = 0; j < m_columns; j++)
@@ -504,7 +504,7 @@ namespace
 
             if (axis == Axis::COLUMN)
             {
-                Tensor result(1, m_columns);
+                Matrix result(1, m_columns);
                 for (size_t i = 0; i < m_columns; i++)
                 {
                     for (size_t j = 0; j < m_rows; j++)
@@ -517,10 +517,10 @@ namespace
                 }
                 return result;
             }
-            return Tensor(m_rows, m_columns);
+            return Matrix(m_rows, m_columns);
         }
 
-        size_t Tensor::argmax()
+        size_t Matrix::argmax()
         {
             if (m_columns != 1 && m_rows != 1)
             {
@@ -566,34 +566,34 @@ namespace
             return maxIndex;
         }
 
-        Tensor Tensor::operator-(const Tensor &other)
+        Matrix Matrix::operator-(const Matrix &other)
         {
             return subtract(other);
         }
 
-        Tensor Tensor::operator-(value_type value)
+        Matrix Matrix::operator-(value_type value)
         {
-            return subtract(Tensor(m_rows, m_columns, value));
+            return subtract(Matrix(m_rows, m_columns, value));
         }
 
-        Tensor Tensor::operator+(const Tensor &other)
+        Matrix Matrix::operator+(const Matrix &other)
         {
             return add(other);
         }
 
-        Tensor Tensor::operator+(value_type value)
+        Matrix Matrix::operator+(value_type value)
         {
-            return add(Tensor(m_rows, m_columns, value));
+            return add(Matrix(m_rows, m_columns, value));
         }
 
-        Tensor Tensor::operator*(const Tensor &other)
+        Matrix Matrix::operator*(const Matrix &other)
         {
             return dot(other);
         }
 
-        Tensor Tensor::operator*(value_type value)
+        Matrix Matrix::operator*(value_type value)
         {
-            Tensor result(m_rows, m_columns);
+            Matrix result(m_rows, m_columns);
             for (size_t i = 0; i < m_rows; i++)
             {
                 for (size_t j = 0; j < m_columns; j++)
@@ -605,9 +605,9 @@ namespace
             return result;
         }
 
-        Tensor Tensor::operator/(value_type value)
+        Matrix Matrix::operator/(value_type value)
         {
-            Tensor result(m_rows, m_columns);
+            Matrix result(m_rows, m_columns);
             for (size_t i = 0; i < m_rows; i++)
             {
                 for (size_t j = 0; j < m_columns; j++)
@@ -619,7 +619,7 @@ namespace
             return result;
         }
 
-        bool Tensor::operator==(const Tensor &other) const
+        bool Matrix::operator==(const Matrix &other) const
         {
             if (m_rows != other.m_rows || m_columns != other.m_columns)
                 return false;
@@ -641,7 +641,7 @@ namespace
         }
 #endif // NTT_MICRO_NN_IMPLEMENTATION
 
-        void Tensor::operator=(const Tensor &other)
+        void Matrix::operator=(const Matrix &other)
         {
             if (m_data != nullptr)
             {
@@ -655,9 +655,9 @@ namespace
             memcpy(m_data, other.m_data, m_rows * m_columns * sizeof(value_type));
         }
 
-        Tensor Tensor::create_from_vector_vector(const std::vector<std::vector<value_type>> &vector)
+        Matrix Matrix::create_from_vector_vector(const std::vector<std::vector<value_type>> &vector)
         {
-            Tensor matrix(vector.size(), vector[0].size());
+            Matrix matrix(vector.size(), vector[0].size());
 
             for (size_t i = 0; i < vector.size(); i++)
             {
@@ -670,9 +670,9 @@ namespace
             return matrix;
         }
 
-        Tensor Tensor::create_from_vector(const std::vector<value_type> &vector)
+        Matrix Matrix::create_from_vector(const std::vector<value_type> &vector)
         {
-            Tensor matrix(1, vector.size());
+            Matrix matrix(1, vector.size());
 
             for (size_t i = 0; i < vector.size(); i++)
             {
@@ -682,9 +682,9 @@ namespace
             return matrix;
         }
 
-        Tensor Tensor::create_identity_matrix(size_t size)
+        Matrix Matrix::create_identity_matrix(size_t size)
         {
-            Tensor matrix(size, size);
+            Matrix matrix(size, size);
 
             for (size_t i = 0; i < size; i++)
             {
@@ -694,7 +694,7 @@ namespace
             return matrix;
         }
 
-        std::string Tensor::to_string() const
+        std::string Matrix::to_string() const
         {
             std::stringstream ss;
             for (size_t i = 0; i < m_rows; i++)
@@ -713,12 +713,12 @@ namespace
         {
         }
 
-        FullyConnectedLayer::FullyConnectedLayer(const Tensor &weights, value_type biases)
+        FullyConnectedLayer::FullyConnectedLayer(const Matrix &weights, value_type biases)
             : m_weights(weights), m_biases(weights.get_columns(), 1, biases)
         {
         }
 
-        FullyConnectedLayer::FullyConnectedLayer(const Tensor &weights, const Tensor &biases)
+        FullyConnectedLayer::FullyConnectedLayer(const Matrix &weights, const Matrix &biases)
             : m_weights(weights), m_biases(biases)
         {
         }
@@ -727,14 +727,14 @@ namespace
         {
         }
 
-        Tensor FullyConnectedLayer::forward(const Tensor &input)
+        Matrix FullyConnectedLayer::forward(const Matrix &input)
         {
             return m_weights * input + m_biases;
         }
 
-        Tensor ReLU::forward(const Tensor &input)
+        Matrix ReLU::forward(const Matrix &input)
         {
-            Tensor result(input.get_rows(), input.get_columns());
+            Matrix result(input.get_rows(), input.get_columns());
             for (size_t i = 0; i < input.get_rows(); i++)
             {
                 for (size_t j = 0; j < input.get_columns(); j++)
@@ -746,9 +746,9 @@ namespace
             return result;
         }
 
-        Tensor Sigmoid::forward(const Tensor &input)
+        Matrix Sigmoid::forward(const Matrix &input)
         {
-            Tensor result(input.get_rows(), input.get_columns());
+            Matrix result(input.get_rows(), input.get_columns());
             for (size_t i = 0; i < input.get_rows(); i++)
             {
                 for (size_t j = 0; j < input.get_columns(); j++)
@@ -764,9 +764,9 @@ namespace
         {
         }
 
-        Tensor ClipLayer::forward(const Tensor &input)
+        Matrix ClipLayer::forward(const Matrix &input)
         {
-            Tensor result(input.get_rows(), input.get_columns());
+            Matrix result(input.get_rows(), input.get_columns());
             for (size_t i = 0; i < input.get_rows(); i++)
             {
                 for (size_t j = 0; j < input.get_columns(); j++)
@@ -778,9 +778,9 @@ namespace
             return result;
         }
 
-        Tensor Softmax::forward(const Tensor &input)
+        Matrix Softmax::forward(const Matrix &input)
         {
-            Tensor result(input.get_rows(), input.get_columns());
+            Matrix result(input.get_rows(), input.get_columns());
             value_type sum = 0.0f;
             for (size_t i = 0; i < input.get_rows(); i++)
             {

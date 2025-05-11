@@ -9,7 +9,7 @@
 
 TEST(MatrixFloatTest, DefaultConstructor)
 {
-    ntt::Tensor matrix(3, 3);
+    ntt::Matrix matrix(3, 3);
     EXPECT_EQ(matrix.get_rows(), 3);
     EXPECT_EQ(matrix.get_columns(), 3);
     EXPECT_EQ(matrix.get_element(0, 0), 0);
@@ -25,7 +25,7 @@ TEST(MatrixFloatTest, DefaultConstructor)
 
 TEST(MatrixFloatTest, ConstructorWithDefaultValue)
 {
-    ntt::Tensor matrix(3, 3, 1);
+    ntt::Matrix matrix(3, 3, 1);
     EXPECT_EQ(matrix.get_element(0, 0), 1);
     EXPECT_EQ(matrix.get_element(0, 1), 1);
     EXPECT_EQ(matrix.get_element(0, 2), 1);
@@ -39,15 +39,15 @@ TEST(MatrixFloatTest, ConstructorWithDefaultValue)
 
 TEST(MatrixFloatTest, SetElement)
 {
-    ntt::Tensor matrix(3, 3, 1);
+    ntt::Matrix matrix(3, 3, 1);
     matrix.set_element(0, 0, 2);
     EXPECT_EQ(matrix.get_element(0, 0), 2);
 }
 
 TEST(MatrixFloatTest, CopyConstructor)
 {
-    ntt::Tensor matrix(3, 3, 1);
-    ntt::Tensor matrix2(matrix);
+    ntt::Matrix matrix(3, 3, 1);
+    ntt::Matrix matrix2(matrix);
 
     EXPECT_EQ(matrix.get_rows(), matrix2.get_rows());
     EXPECT_EQ(matrix.get_columns(), matrix2.get_columns());
@@ -65,7 +65,7 @@ TEST(MatrixFloatTest, CopyConstructor)
 
 TEST(MatrixFloatTest, TestCreateMatrixFromVectorVector)
 {
-    ntt::Tensor matrix = ntt::Tensor::create_from_vector_vector({{0.35, 0.45},
+    ntt::Matrix matrix = ntt::Matrix::create_from_vector_vector({{0.35, 0.45},
                                                                  {0.4, 0.5}});
 
     EXPECT_EQ(matrix.get_rows(), 2);
@@ -78,27 +78,27 @@ TEST(MatrixFloatTest, TestCreateMatrixFromVectorVector)
 
 TEST(MatrixFloatTest, DotProduct)
 {
-    ntt::Tensor matrix = ntt::Tensor::create_from_vector_vector({{0.35, 0.45},
+    ntt::Matrix matrix = ntt::Matrix::create_from_vector_vector({{0.35, 0.45},
                                                                  {0.4, 0.5}});
 
-    ntt::Tensor matrix2 = ntt::Tensor::create_from_vector_vector({{1, 1},
+    ntt::Matrix matrix2 = ntt::Matrix::create_from_vector_vector({{1, 1},
                                                                   {1, 1}});
 
     // results: [[0.8, 0.8],
     //           [0.9, 0.9]]
-    ntt::Tensor expectedResult = ntt::Tensor::create_from_vector_vector({{0.8, 0.8},
+    ntt::Matrix expectedResult = ntt::Matrix::create_from_vector_vector({{0.8, 0.8},
                                                                          {0.9, 0.9}});
 
-    ntt::Tensor result = matrix.dot(matrix2);
+    ntt::Matrix result = matrix.dot(matrix2);
     EXPECT_TRUE(result == expectedResult);
 }
 
 TEST(MatrixFloatTest, Equality)
 {
-    ntt::Tensor matrix = ntt::Tensor::create_from_vector_vector({{0.35, 0.45},
+    ntt::Matrix matrix = ntt::Matrix::create_from_vector_vector({{0.35, 0.45},
                                                                  {0.4, 0.5}});
 
-    ntt::Tensor matrix2 = ntt::Tensor::create_from_vector_vector({{0.35, 0.45},
+    ntt::Matrix matrix2 = ntt::Matrix::create_from_vector_vector({{0.35, 0.45},
                                                                   {0.4, 0.5}});
 
     EXPECT_TRUE(matrix == matrix2);
@@ -106,10 +106,10 @@ TEST(MatrixFloatTest, Equality)
 
 TEST(MatrixFloatTest, Inequality)
 {
-    ntt::Tensor matrix = ntt::Tensor::create_from_vector_vector({{0.35, 0.45},
+    ntt::Matrix matrix = ntt::Matrix::create_from_vector_vector({{0.35, 0.45},
                                                                  {0.4, 0.5}});
 
-    ntt::Tensor matrix2 = ntt::Tensor::create_from_vector_vector({{0.35, 0.45},
+    ntt::Matrix matrix2 = ntt::Matrix::create_from_vector_vector({{0.35, 0.45},
                                                                   {0.4, 0.0}});
 
     EXPECT_FALSE(matrix == matrix2);
@@ -117,21 +117,21 @@ TEST(MatrixFloatTest, Inequality)
 
 TEST(MatrixFloatTest, TestMutiply)
 {
-    ntt::Tensor matrix = ntt::Tensor::create_from_vector_vector({{0.35, 0.45},
+    ntt::Matrix matrix = ntt::Matrix::create_from_vector_vector({{0.35, 0.45},
                                                                  {0.4, 0.5}});
 
-    ntt::Tensor expectedResult = ntt::Tensor::create_from_vector_vector({{0.7, 0.9},
+    ntt::Matrix expectedResult = ntt::Matrix::create_from_vector_vector({{0.7, 0.9},
                                                                          {0.8, 1}});
 
-    ntt::Tensor result = matrix * 2;
+    ntt::Matrix result = matrix * 2;
     EXPECT_TRUE(result == expectedResult);
 }
 
 TEST(MatrixFloatTest, TestNonMatchedSizeDotProduct)
 {
-    ntt::Tensor matrix = ntt::Tensor::create_from_vector_vector({{0.35},
+    ntt::Matrix matrix = ntt::Matrix::create_from_vector_vector({{0.35},
                                                                  {0.4}});
-    ntt::Tensor matrix2 = ntt::Tensor::create_from_vector_vector({{1, 1, 1},
+    ntt::Matrix matrix2 = ntt::Matrix::create_from_vector_vector({{1, 1, 1},
                                                                   {1, 1, 1}});
 
     EXPECT_THROW(matrix.dot(matrix2), std::invalid_argument);
@@ -139,48 +139,48 @@ TEST(MatrixFloatTest, TestNonMatchedSizeDotProduct)
 
 TEST(MatrixFloatTest, TestTranspose)
 {
-    ntt::Tensor matrix = ntt::Tensor::create_from_vector_vector({{0.35, 0.45},
+    ntt::Matrix matrix = ntt::Matrix::create_from_vector_vector({{0.35, 0.45},
                                                                  {0.4, 0.5}});
 
-    ntt::Tensor expectedResult = ntt::Tensor::create_from_vector_vector({{0.35, 0.4},
+    ntt::Matrix expectedResult = ntt::Matrix::create_from_vector_vector({{0.35, 0.4},
                                                                          {0.45, 0.5}});
 
-    ntt::Tensor result = matrix.transpose();
+    ntt::Matrix result = matrix.transpose();
     EXPECT_TRUE(result == expectedResult);
 }
 
 TEST(MatrixFloatTest, TestVectorTranspose)
 {
-    ntt::Tensor matrix = ntt::Tensor::create_from_vector_vector({{0.35, 0.45}});
+    ntt::Matrix matrix = ntt::Matrix::create_from_vector_vector({{0.35, 0.45}});
 
-    ntt::Tensor expectedResult = ntt::Tensor::create_from_vector_vector({{0.35},
+    ntt::Matrix expectedResult = ntt::Matrix::create_from_vector_vector({{0.35},
                                                                          {0.45}});
 
-    ntt::Tensor result = matrix.transpose();
+    ntt::Matrix result = matrix.transpose();
     EXPECT_TRUE(result == expectedResult);
 }
 
 TEST(MatrixFloatTest, AddAnotherMatrix)
 {
-    ntt::Tensor matrix = ntt::Tensor::create_from_vector_vector({{0.35, 0.45},
+    ntt::Matrix matrix = ntt::Matrix::create_from_vector_vector({{0.35, 0.45},
                                                                  {0.4, 0.5}});
 
-    ntt::Tensor matrix2 = ntt::Tensor::create_from_vector_vector({{1, 1},
+    ntt::Matrix matrix2 = ntt::Matrix::create_from_vector_vector({{1, 1},
                                                                   {1, 1}});
 
-    ntt::Tensor expectedResult = ntt::Tensor::create_from_vector_vector({{1.35, 1.45},
+    ntt::Matrix expectedResult = ntt::Matrix::create_from_vector_vector({{1.35, 1.45},
                                                                          {1.4, 1.5}});
 
-    ntt::Tensor result = matrix + matrix2;
+    ntt::Matrix result = matrix + matrix2;
     EXPECT_TRUE(result == expectedResult);
 }
 
 TEST(MatrixFloatTest, TestNonMatchedSizeAdd)
 {
-    ntt::Tensor matrix = ntt::Tensor::create_from_vector_vector({{0.35, 0.45},
+    ntt::Matrix matrix = ntt::Matrix::create_from_vector_vector({{0.35, 0.45},
                                                                  {0.4, 0.5}});
 
-    ntt::Tensor matrix2 = ntt::Tensor::create_from_vector_vector({{1, 1, 1},
+    ntt::Matrix matrix2 = ntt::Matrix::create_from_vector_vector({{1, 1, 1},
                                                                   {1, 1, 1}});
 
     EXPECT_THROW(matrix + matrix2, std::invalid_argument);
@@ -188,43 +188,43 @@ TEST(MatrixFloatTest, TestNonMatchedSizeAdd)
 
 TEST(MatrixFloatTest, AddMatrixWithNumber)
 {
-    ntt::Tensor matrix = ntt::Tensor::create_from_vector_vector({{0.35, 0.45},
+    ntt::Matrix matrix = ntt::Matrix::create_from_vector_vector({{0.35, 0.45},
                                                                  {0.4, 0.5}});
 
-    ntt::Tensor expectedResult = ntt::Tensor::create_from_vector_vector({{1.35, 1.45},
+    ntt::Matrix expectedResult = ntt::Matrix::create_from_vector_vector({{1.35, 1.45},
                                                                          {1.4, 1.5}});
 
-    ntt::Tensor result = matrix + 1;
+    ntt::Matrix result = matrix + 1;
     EXPECT_TRUE(result == expectedResult);
 }
 
 TEST(MatrixFloatTest, TestSubtractAnotherMatrix)
 {
-    ntt::Tensor matrix = ntt::Tensor::create_from_vector_vector({{0.35, 0.45},
+    ntt::Matrix matrix = ntt::Matrix::create_from_vector_vector({{0.35, 0.45},
                                                                  {0.4, 0.5}});
 
-    ntt::Tensor matrix2 = ntt::Tensor::create_from_vector_vector({{1, 1},
+    ntt::Matrix matrix2 = ntt::Matrix::create_from_vector_vector({{1, 1},
                                                                   {1, 1}});
 }
 
 TEST(MatrixFloatTest, TestSubtractMatrixWithNumber)
 {
-    ntt::Tensor matrix = ntt::Tensor::create_from_vector_vector({{1.35, 1.45},
+    ntt::Matrix matrix = ntt::Matrix::create_from_vector_vector({{1.35, 1.45},
                                                                  {1.4, 1.5}});
 
-    ntt::Tensor expectedResult = ntt::Tensor::create_from_vector_vector({{0.35, 0.45},
+    ntt::Matrix expectedResult = ntt::Matrix::create_from_vector_vector({{0.35, 0.45},
                                                                          {0.4, 0.5}});
 
-    ntt::Tensor result = matrix - 1;
+    ntt::Matrix result = matrix - 1;
     EXPECT_TRUE(result == expectedResult);
 }
 
 TEST(MatrixFloatTest, TestNonMatchedSizeSubtract)
 {
-    ntt::Tensor matrix = ntt::Tensor::create_from_vector_vector({{0.35, 0.45},
+    ntt::Matrix matrix = ntt::Matrix::create_from_vector_vector({{0.35, 0.45},
                                                                  {0.4, 0.5}});
 
-    ntt::Tensor matrix2 = ntt::Tensor::create_from_vector_vector({{1, 1, 1},
+    ntt::Matrix matrix2 = ntt::Matrix::create_from_vector_vector({{1, 1, 1},
                                                                   {1, 1, 1}});
 
     EXPECT_THROW(matrix - matrix2, std::invalid_argument);
@@ -232,39 +232,39 @@ TEST(MatrixFloatTest, TestNonMatchedSizeSubtract)
 
 TEST(MatrixFloatTest, TestNegative)
 {
-    ntt::Tensor matrix = ntt::Tensor::create_from_vector_vector({{0.35, 0.45},
+    ntt::Matrix matrix = ntt::Matrix::create_from_vector_vector({{0.35, 0.45},
                                                                  {0.4, 0.5}});
 
-    ntt::Tensor expectedResult = ntt::Tensor::create_from_vector_vector({{-0.35, -0.45},
+    ntt::Matrix expectedResult = ntt::Matrix::create_from_vector_vector({{-0.35, -0.45},
                                                                          {-0.4, -0.5}});
 
-    ntt::Tensor result = matrix.negative();
+    ntt::Matrix result = matrix.negative();
     EXPECT_TRUE(result == expectedResult);
 }
 
 TEST(MatrixFloatTest, TestSubtract)
 {
-    ntt::Tensor matrix = ntt::Tensor::create_from_vector_vector({{0.35, 0.45},
+    ntt::Matrix matrix = ntt::Matrix::create_from_vector_vector({{0.35, 0.45},
                                                                  {0.4, 0.5}});
 
-    ntt::Tensor matrix2 = ntt::Tensor::create_from_vector_vector({{0.2, 0.12},
+    ntt::Matrix matrix2 = ntt::Matrix::create_from_vector_vector({{0.2, 0.12},
                                                                   {0.8, 1.5}});
 
-    ntt::Tensor expectedResult = ntt::Tensor::create_from_vector_vector({{0.15, 0.33},
+    ntt::Matrix expectedResult = ntt::Matrix::create_from_vector_vector({{0.15, 0.33},
                                                                          {-0.4, -1}});
 
-    ntt::Tensor result = matrix - matrix2;
+    ntt::Matrix result = matrix - matrix2;
     EXPECT_TRUE(result == expectedResult);
 }
 
 TEST(MatrixFloatTest, CreateIdentityMatrix)
 {
-    ntt::Tensor matrix = ntt::Tensor::create_identity_matrix(3);
-    ntt::Tensor matrix2 = ntt::Tensor::create_from_vector_vector({{3, -2.3, 0},
+    ntt::Matrix matrix = ntt::Matrix::create_identity_matrix(3);
+    ntt::Matrix matrix2 = ntt::Matrix::create_from_vector_vector({{3, -2.3, 0},
                                                                   {2.1, 0, 0.2},
                                                                   {0, 0, 0}});
 
-    ntt::Tensor expectedResult = ntt::Tensor::create_from_vector_vector({{1, 0, 0},
+    ntt::Matrix expectedResult = ntt::Matrix::create_from_vector_vector({{1, 0, 0},
                                                                          {0, 1, 0},
                                                                          {0, 0, 1}});
 
@@ -274,45 +274,45 @@ TEST(MatrixFloatTest, CreateIdentityMatrix)
 
 TEST(MatrixFloatTest, TestDivide)
 {
-    ntt::Tensor matrix = ntt::Tensor::create_from_vector_vector({{1, 2, 3},
+    ntt::Matrix matrix = ntt::Matrix::create_from_vector_vector({{1, 2, 3},
                                                                  {4, 5, 6},
                                                                  {7, 8, 9}});
 
-    ntt::Tensor expectedResult = ntt::Tensor::create_from_vector_vector({{0.5, 1, 1.5},
+    ntt::Matrix expectedResult = ntt::Matrix::create_from_vector_vector({{0.5, 1, 1.5},
                                                                          {2, 2.5, 3},
                                                                          {3.5, 4, 4.5}});
 
-    ntt::Tensor result = matrix / 2;
+    ntt::Matrix result = matrix / 2;
     EXPECT_TRUE(result == expectedResult);
 }
 
 TEST(MatrixFloatTest, TestAddPadding)
 {
-    ntt::Tensor matrix = ntt::Tensor::create_from_vector_vector({{1, 0, 0},
+    ntt::Matrix matrix = ntt::Matrix::create_from_vector_vector({{1, 0, 0},
                                                                  {0, 1, 0},
                                                                  {0, 0, 1}});
 
-    ntt::Tensor expectedResult = ntt::Tensor::create_from_vector_vector({{0, 0, 0, 0, 0},
+    ntt::Matrix expectedResult = ntt::Matrix::create_from_vector_vector({{0, 0, 0, 0, 0},
                                                                          {0, 1, 0, 0, 0},
                                                                          {0, 0, 1, 0, 0},
                                                                          {0, 0, 0, 1, 0},
                                                                          {0, 0, 0, 0, 0}});
 
-    ntt::Tensor result = matrix.add_padding(1);
+    ntt::Matrix result = matrix.add_padding(1);
     EXPECT_TRUE(result == expectedResult);
 }
 
 TEST(MatrixFloatTest, TestSliding)
 {
     // create random 4x4 matrix
-    ntt::Tensor matrix = ntt::Tensor::create_from_vector_vector({{1, 2, 3, 4},
+    ntt::Matrix matrix = ntt::Matrix::create_from_vector_vector({{1, 2, 3, 4},
                                                                  {5, 6, 7, 8},
                                                                  {9, 10, 11, 12},
                                                                  {13, 14, 15, 16}});
 
     struct MaxPoolingData
     {
-        ntt::Tensor result;
+        ntt::Matrix result;
 
         MaxPoolingData(size_t rows, size_t columns) : result(rows, columns) {}
     };
@@ -321,7 +321,7 @@ TEST(MatrixFloatTest, TestSliding)
                                         size_t startColumn,
                                         size_t endRow,
                                         size_t endColumn,
-                                        ntt::Tensor &matrix,
+                                        ntt::Matrix &matrix,
                                         void *data)
     {
         MaxPoolingData *maxPoolingData = (MaxPoolingData *)data;
@@ -342,7 +342,7 @@ TEST(MatrixFloatTest, TestSliding)
     MaxPoolingData maxPoolingData(matrix.get_rows() / 2, matrix.get_columns() / 2);
     matrix.sliding(callback, 2, 2, 2, 2, &maxPoolingData);
 
-    ntt::Tensor expectedResult = ntt::Tensor::create_from_vector_vector({{6, 8},
+    ntt::Matrix expectedResult = ntt::Matrix::create_from_vector_vector({{6, 8},
                                                                          {14, 16}});
 
     EXPECT_TRUE(maxPoolingData.result == expectedResult);
@@ -350,10 +350,10 @@ TEST(MatrixFloatTest, TestSliding)
 
 TEST(MatrixFloatTest, MatrixFloatTest_Reshape_Test)
 {
-    ntt::Tensor matrix = ntt::Tensor::create_from_vector_vector({{1, 2, 3, 4},
+    ntt::Matrix matrix = ntt::Matrix::create_from_vector_vector({{1, 2, 3, 4},
                                                                  {5, 6, 7, 8}});
 
-    ntt::Tensor expectedResult = ntt::Tensor::create_from_vector_vector({{1, 2},
+    ntt::Matrix expectedResult = ntt::Matrix::create_from_vector_vector({{1, 2},
                                                                          {3, 4},
                                                                          {5, 6},
                                                                          {7, 8}});
@@ -364,43 +364,43 @@ TEST(MatrixFloatTest, MatrixFloatTest_Reshape_Test)
 
 TEST(MatrixFloatTest, MatrixFloatTest_ToShape_Test)
 {
-    ntt::Tensor matrix = ntt::Tensor::create_from_vector_vector({{1, 2, 3, 4},
+    ntt::Matrix matrix = ntt::Matrix::create_from_vector_vector({{1, 2, 3, 4},
                                                                  {5, 6, 7, 8}});
 
-    ntt::Tensor expectedResult = ntt::Tensor::create_from_vector_vector({{1, 2},
+    ntt::Matrix expectedResult = ntt::Matrix::create_from_vector_vector({{1, 2},
                                                                          {3, 4},
                                                                          {5, 6},
                                                                          {7, 8}});
 
-    ntt::Tensor result = matrix.toShape(4, 2);
+    ntt::Matrix result = matrix.toShape(4, 2);
     EXPECT_TRUE(result == expectedResult);
 }
 
 TEST(MatrixFloatTest, MatrixFloatTest_Max_Test)
 {
-    ntt::Tensor matrix = ntt::Tensor::create_from_vector_vector({{1, 2, 3, 4},
+    ntt::Matrix matrix = ntt::Matrix::create_from_vector_vector({{1, 2, 3, 4},
                                                                  {5, 10, 7, 8}});
 
-    ntt::Tensor expectedMatrixResult = ntt::Tensor::create_from_vector_vector({{10}});
-    ntt::Tensor expectedRowResult = ntt::Tensor::create_from_vector_vector({{4},
+    ntt::Matrix expectedMatrixResult = ntt::Matrix::create_from_vector_vector({{10}});
+    ntt::Matrix expectedRowResult = ntt::Matrix::create_from_vector_vector({{4},
                                                                             {10}});
-    ntt::Tensor expectedColumnResult = ntt::Tensor::create_from_vector_vector({{5, 10, 7, 8}});
+    ntt::Matrix expectedColumnResult = ntt::Matrix::create_from_vector_vector({{5, 10, 7, 8}});
 
-    EXPECT_TRUE(matrix.max(ntt::Tensor::Axis::MATRIX) == expectedMatrixResult);
-    EXPECT_TRUE(matrix.max(ntt::Tensor::Axis::ROW) == expectedRowResult);
-    EXPECT_TRUE(matrix.max(ntt::Tensor::Axis::COLUMN) == expectedColumnResult);
+    EXPECT_TRUE(matrix.max(ntt::Matrix::Axis::MATRIX) == expectedMatrixResult);
+    EXPECT_TRUE(matrix.max(ntt::Matrix::Axis::ROW) == expectedRowResult);
+    EXPECT_TRUE(matrix.max(ntt::Matrix::Axis::COLUMN) == expectedColumnResult);
 }
 
 TEST(MatrixFloatTest, MatrixFloatTest_Argmax_Test)
 {
-    ntt::Tensor matrix = ntt::Tensor::create_from_vector_vector({{1, 2, 3, 4}});
+    ntt::Matrix matrix = ntt::Matrix::create_from_vector_vector({{1, 2, 3, 4}});
 
     EXPECT_THAT(matrix.argmax(), 3);
 }
 
 TEST(MatrixFloatTest, MatrixFloatTest_Argmax_Test_2)
 {
-    ntt::Tensor matrix = ntt::Tensor::create_from_vector_vector({{1},
+    ntt::Matrix matrix = ntt::Matrix::create_from_vector_vector({{1},
                                                                  {3},
                                                                  {-1}});
 
@@ -409,47 +409,47 @@ TEST(MatrixFloatTest, MatrixFloatTest_Argmax_Test_2)
 
 TEST(MatrixFloatTest, MatrixFloatTest_CrossCorrelation_Test)
 {
-    ntt::Tensor matrix = ntt::Tensor::create_from_vector_vector({{1, 2, 3, 4},
+    ntt::Matrix matrix = ntt::Matrix::create_from_vector_vector({{1, 2, 3, 4},
                                                                  {5, 6, 7, 8},
                                                                  {6, 2, 3, 1},
                                                                  {1, 2, 3, 4}});
 
-    ntt::Tensor kernel = ntt::Tensor::create_from_vector_vector({{1, 1},
+    ntt::Matrix kernel = ntt::Matrix::create_from_vector_vector({{1, 1},
                                                                  {1, 1}});
 
-    ntt::Tensor expectedResult = ntt::Tensor::create_from_vector_vector({{14, 18, 22},
+    ntt::Matrix expectedResult = ntt::Matrix::create_from_vector_vector({{14, 18, 22},
                                                                          {19, 18, 19},
                                                                          {11, 10, 11}});
 
-    ntt::Tensor result = matrix.cross_correlation(kernel);
+    ntt::Matrix result = matrix.cross_correlation(kernel);
     EXPECT_TRUE(result == expectedResult);
 }
 
 TEST(MatrixFloatTest, MatrixFloatTest_CrossCorrelation_Test_2)
 {
-    ntt::Tensor matrix = ntt::Tensor::create_from_vector_vector({{1, 2, 3, 4},
+    ntt::Matrix matrix = ntt::Matrix::create_from_vector_vector({{1, 2, 3, 4},
                                                                  {5, 6, 7, 8},
                                                                  {6, 2, 3, 1},
                                                                  {1, 2, 3, 4}});
 
-    ntt::Tensor kernel = ntt::Tensor::create_from_vector_vector({{1, 0.5},
+    ntt::Matrix kernel = ntt::Matrix::create_from_vector_vector({{1, 0.5},
                                                                  {0.5, 1}});
 
-    ntt::Tensor expectedResult = ntt::Tensor::create_from_vector_vector({{10.5, 16.5},
+    ntt::Matrix expectedResult = ntt::Matrix::create_from_vector_vector({{10.5, 16.5},
                                                                          {9.5, 9}});
 
-    ntt::Tensor result = matrix.cross_correlation(kernel, 2);
+    ntt::Matrix result = matrix.cross_correlation(kernel, 2);
     EXPECT_TRUE(result == expectedResult);
 }
 
 TEST(MatrixFloatTest, MatrixFloatTest_Clip_Test)
 {
-    ntt::Tensor matrix = ntt::Tensor::create_from_vector_vector({{1, 2, 3, 4},
+    ntt::Matrix matrix = ntt::Matrix::create_from_vector_vector({{1, 2, 3, 4},
                                                                  {5, 6, 7, 8}});
 
-    ntt::Tensor expectedResult = ntt::Tensor::create_from_vector_vector({{3, 3, 3, 4},
+    ntt::Matrix expectedResult = ntt::Matrix::create_from_vector_vector({{3, 3, 3, 4},
                                                                          {5, 6, 6, 6}});
 
-    ntt::Tensor result = ntt::ClipLayer(3, 6).forward(matrix);
+    ntt::Matrix result = ntt::ClipLayer(3, 6).forward(matrix);
     EXPECT_TRUE(result == expectedResult);
 }
