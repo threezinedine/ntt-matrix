@@ -44,6 +44,9 @@ namespace
 
             std::string to_string() const;
 
+        public:
+            static std::string convert_shape_to_string(const shape_type &shape);
+
         private:
             shape_type m_shape;
             shape_type m_currentIndex;
@@ -53,6 +56,7 @@ namespace
         {
         public:
             Tensor(const shape_type &shape, float defaultValue = NTT_DEFAULT_VALUE);
+            ~Tensor();
 
             inline shape_type get_shape() const { return m_shape; }
             float get_element(const shape_type &indexes) const;
@@ -61,9 +65,19 @@ namespace
             std::string to_string() const;
             std::string flatten() const;
 
+        public:
+            void operator=(const Tensor &other);
+
+        public:
+            static Tensor from_vector(const std::vector<float> &data);
+            static Tensor from_vector(const std::vector<std::vector<float>> &data);
+            static Tensor from_vector(const std::vector<std::vector<std::vector<float>>> &data);
+            static Tensor from_vector(const std::vector<std::vector<std::vector<std::vector<float>>>> &data);
+
         private:
             const size_t reloadTotalElements();
             inline const size_t getTotalElements() const { return m_totalElements; }
+            bool is_index_in_range(const shape_type &indexes) const;
 
         private:
             shape_type m_shape;
@@ -202,6 +216,22 @@ namespace
             return std::string(buffer);
         }
 
+        std::string Shape::convert_shape_to_string(const shape_type &shape)
+        {
+            std::string result = "[";
+            for (size_t i = 0; i < shape.size(); i++)
+            {
+                result += std::to_string(shape[i]);
+
+                if (i != shape.size() - 1)
+                {
+                    result += ", ";
+                }
+            }
+            result += "]";
+            return result;
+        }
+
         std::string Tensor::flatten() const
         {
             std::string result = "[";
@@ -214,6 +244,85 @@ namespace
             return result;
         }
 
+        void Tensor::operator=(const Tensor &other)
+        {
+            if (m_data != nullptr)
+            {
+                free(m_data);
+                m_data = nullptr;
+            }
+
+            m_shape = other.m_shape;
+            m_strides = other.m_strides;
+            m_totalElements = other.m_totalElements;
+            m_data = (float *)malloc(sizeof(float) * m_totalElements);
+
+            for (size_t i = 0; i < m_totalElements; i++)
+            {
+                m_data[i] = other.m_data[i];
+            }
+        }
+
+        Tensor Tensor::from_vector(const std::vector<float> &data)
+        {
+            Tensor tensor({data.size()}, 0.0f);
+            for (size_t i = 0; i < data.size(); i++)
+            {
+                tensor.set_element({i}, data[i]);
+            }
+
+            return tensor;
+        }
+
+        Tensor Tensor::from_vector(const std::vector<std::vector<float>> &data)
+        {
+            Tensor tensor({data.size(), data[0].size()}, 0.0f);
+            for (size_t i = 0; i < data.size(); i++)
+            {
+                for (size_t j = 0; j < data[i].size(); j++)
+                {
+                    tensor.set_element({i, j}, data[i][j]);
+                }
+            }
+
+            return tensor;
+        }
+
+        Tensor Tensor::from_vector(const std::vector<std::vector<std::vector<float>>> &data)
+        {
+            Tensor tensor({data.size(), data[0].size(), data[0][0].size()}, 0.0f);
+            for (size_t i = 0; i < data.size(); i++)
+            {
+                for (size_t j = 0; j < data[i].size(); j++)
+                {
+                    for (size_t k = 0; k < data[i][j].size(); k++)
+                    {
+                        tensor.set_element({i, j, k}, data[i][j][k]);
+                    }
+                }
+            }
+            return tensor;
+        }
+
+        Tensor Tensor::from_vector(const std::vector<std::vector<std::vector<std::vector<float>>>> &data)
+        {
+            Tensor tensor({data.size(), data[0].size(), data[0][0].size(), data[0][0][0].size()}, 0.0f);
+            for (size_t i = 0; i < data.size(); i++)
+            {
+                for (size_t j = 0; j < data[i].size(); j++)
+                {
+                    for (size_t k = 0; k < data[i][j].size(); k++)
+                    {
+                        for (size_t l = 0; l < data[i][j][k].size(); l++)
+                        {
+                            tensor.set_element({i, j, k, l}, data[i][j][k][l]);
+                        }
+                    }
+                }
+            }
+            return tensor;
+        }
+
         const size_t Tensor::reloadTotalElements()
         {
             m_totalElements = 1;
@@ -222,6 +331,18 @@ namespace
                 m_totalElements *= m_shape[i];
             }
             return m_totalElements;
+        }
+
+        bool Tensor::is_index_in_range(const shape_type &indexes) const
+        {
+            for (size_t i = 0; i < indexes.size(); i++)
+            {
+                if (indexes[i] >= m_shape[i])
+                {
+                    return false;
+                }
+            }
+            return true;
         }
 
         Tensor::Tensor(const shape_type &shape, float defaultValue)
@@ -250,8 +371,27 @@ namespace
             m_strides.push_back(1);
         }
 
+        Tensor::~Tensor()
+        {
+            if (m_data != nullptr)
+            {
+                free(m_data);
+                m_data = nullptr;
+            }
+        }
+
         float Tensor::get_element(const shape_type &indexes) const
         {
+            if (!is_index_in_range(indexes))
+            {
+                char buffer[NTT_ERROR_MESSAGE_SIZE];
+                snprintf(buffer, sizeof(buffer),
+                         "Index is out of range: %s not in range of %s",
+                         Shape::convert_shape_to_string(indexes).c_str(),
+                         Shape::convert_shape_to_string(m_shape).c_str());
+                throw std::out_of_range(buffer);
+            }
+
             size_t index = 0;
             for (size_t i = 0; i < indexes.size(); i++)
             {

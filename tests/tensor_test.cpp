@@ -150,3 +150,90 @@ TEST(TensorTest, SetElementByIndex)
     tensor.set_element({0, 0, 0, 0}, 4.23);
     EXPECT_THAT(tensor.get_element({0, 0, 0, 0}), ::testing::FloatEq(4.23));
 }
+
+TEST(TensorTest, ConstructorWithPredefinedData)
+{
+    Tensor tensor = Tensor::from_vector({3.0, -2.1, 1.0});
+    EXPECT_EQ(tensor.get_shape(), (shape_type{3}));
+
+    EXPECT_THAT(tensor.get_element({0}), ::testing::FloatEq(3.0));
+    EXPECT_THAT(tensor.get_element({1}), ::testing::FloatEq(-2.1));
+    EXPECT_THAT(tensor.get_element({2}), ::testing::FloatEq(1.0));
+}
+
+TEST(TensorTest, ConstructorWithPredefinedData_2D)
+{
+    Tensor tensor = Tensor::from_vector({{3.0, -2.1, 1.0},
+                                         {4.2, 5.0, -1.0}});
+    EXPECT_EQ(tensor.get_shape(), (shape_type{2, 3}));
+
+    EXPECT_THAT(tensor.get_element({0, 0}), ::testing::FloatEq(3.0));
+    EXPECT_THAT(tensor.get_element({0, 1}), ::testing::FloatEq(-2.1));
+    EXPECT_THAT(tensor.get_element({0, 2}), ::testing::FloatEq(1.0));
+    EXPECT_THAT(tensor.get_element({1, 0}), ::testing::FloatEq(4.2));
+    EXPECT_THAT(tensor.get_element({1, 1}), ::testing::FloatEq(5.0));
+    EXPECT_THAT(tensor.get_element({1, 2}), ::testing::FloatEq(-1.0));
+}
+
+TEST(TensorTest, ConstructorWithPredefinedData_3D)
+{
+    Tensor tensor = Tensor::from_vector({{{4.23, 1.0f},
+                                          {1.0, 1.0f}},
+                                         {{-2.16f, 1.0f},
+                                          {2.0, -1.0f}}});
+    EXPECT_EQ(tensor.get_shape(), (shape_type{2, 2, 2}));
+
+    EXPECT_THAT(tensor.get_element({0, 0, 0}), ::testing::FloatEq(4.23));
+    EXPECT_THAT(tensor.get_element({0, 0, 1}), ::testing::FloatEq(1.0));
+    EXPECT_THAT(tensor.get_element({0, 1, 0}), ::testing::FloatEq(1.0));
+    EXPECT_THAT(tensor.get_element({0, 1, 1}), ::testing::FloatEq(1.0));
+    EXPECT_THAT(tensor.get_element({1, 0, 0}), ::testing::FloatEq(-2.16f));
+    EXPECT_THAT(tensor.get_element({1, 0, 1}), ::testing::FloatEq(1.0));
+    EXPECT_THAT(tensor.get_element({1, 1, 0}), ::testing::FloatEq(2.0));
+    EXPECT_THAT(tensor.get_element({1, 1, 1}), ::testing::FloatEq(-1.0));
+}
+
+TEST(TensorTest, ConstructorWithPredefinedData_4D)
+{
+    Tensor tensor = Tensor::from_vector({{{{4.23, 1.0f},
+                                           {1.0, 1.0f}},
+                                          {{-2.16f, 1.0f},
+                                           {2.0, -1.0f}}},
+                                         {{{4.23, 1.0f},
+                                           {1.0, 1.0f}},
+                                          {{-2.16f, 1.0f},
+                                           {2.0, -1.0f}}}});
+    EXPECT_EQ(tensor.get_shape(), (shape_type{2, 2, 2, 2}));
+
+    EXPECT_THAT(tensor.get_element({0, 0, 0, 0}), ::testing::FloatEq(4.23));
+    EXPECT_THAT(tensor.get_element({0, 0, 0, 1}), ::testing::FloatEq(1.0));
+    EXPECT_THAT(tensor.get_element({0, 0, 1, 0}), ::testing::FloatEq(1.0));
+    EXPECT_THAT(tensor.get_element({0, 0, 1, 1}), ::testing::FloatEq(1.0));
+    EXPECT_THAT(tensor.get_element({0, 1, 0, 0}), ::testing::FloatEq(-2.16f));
+    EXPECT_THAT(tensor.get_element({0, 1, 0, 1}), ::testing::FloatEq(1.0));
+    EXPECT_THAT(tensor.get_element({0, 1, 1, 0}), ::testing::FloatEq(2.0));
+    EXPECT_THAT(tensor.get_element({0, 1, 1, 1}), ::testing::FloatEq(-1.0));
+    EXPECT_THAT(tensor.get_element({1, 0, 0, 0}), ::testing::FloatEq(4.23));
+    EXPECT_THAT(tensor.get_element({1, 0, 0, 1}), ::testing::FloatEq(1.0));
+    EXPECT_THAT(tensor.get_element({1, 0, 1, 0}), ::testing::FloatEq(1.0));
+    EXPECT_THAT(tensor.get_element({1, 0, 1, 1}), ::testing::FloatEq(1.0));
+    EXPECT_THAT(tensor.get_element({1, 1, 0, 0}), ::testing::FloatEq(-2.16f));
+    EXPECT_THAT(tensor.get_element({1, 1, 0, 1}), ::testing::FloatEq(1.0));
+    EXPECT_THAT(tensor.get_element({1, 1, 1, 0}), ::testing::FloatEq(2.0));
+    EXPECT_THAT(tensor.get_element({1, 1, 1, 1}), ::testing::FloatEq(-1.0));
+}
+
+TEST(TensorTest, ReallocateTensorWhenANewOneIsAssigned)
+{
+    Tensor tensor({2, 2}, 1);
+    tensor = Tensor::from_vector({3.0, -2.1, 1.0});
+    EXPECT_EQ(tensor.get_shape(), (shape_type{3}));
+}
+
+TEST(TensorTest, GetElementWithExceedingIndex)
+{
+    Tensor tensor({2, 2}, 1);
+    EXPECT_THROW(tensor.get_element({2, 2}), std::out_of_range);
+    EXPECT_THROW(tensor.get_element({2, 0}), std::out_of_range);
+    EXPECT_THROW(tensor.get_element({0, 2}), std::out_of_range);
+}
