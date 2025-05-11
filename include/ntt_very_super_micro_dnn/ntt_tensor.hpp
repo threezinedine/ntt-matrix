@@ -36,6 +36,8 @@ namespace
         using tensor3d = std::vector<tensor2d>;
         using tensor4d = std::vector<tensor3d>;
 
+        class Layer;
+
         class Shape
         {
         public:
@@ -116,7 +118,40 @@ namespace
             float *m_data;
         };
 
+        class Layer
+        {
+        public:
+            virtual Tensor forward(const Tensor &input) = 0;
+        };
+
+        class ReLULayer : public Layer
+        {
+        public:
+            Tensor forward(const Tensor &input) override;
+        };
+
+        class Clip2DLayer : public Layer
+        {
+        public:
+            Clip2DLayer(const float &min, const float &max);
+            Tensor forward(const Tensor &input) override;
+
+        private:
+            float m_min;
+            float m_max;
+        };
+
 #ifdef NTT_MICRO_NN_IMPLEMENTATION
+        static float getMax(const float &a, const float &b)
+        {
+            return a > b ? a : b;
+        }
+
+        static float getMin(const float &a, const float &b)
+        {
+            return a < b ? a : b;
+        }
+
         Shape::Shape(const shape_type &shape) : m_shape(shape)
         {
             m_currentIndex.clear();
@@ -665,6 +700,16 @@ namespace
 
         float Tensor::get_element(const shape_type &indexes) const
         {
+            if (indexes.size() != m_shape.size())
+            {
+                char buffer[NTT_ERROR_MESSAGE_SIZE];
+                snprintf(buffer, sizeof(buffer),
+                         "Shape mismatch: %s != %s",
+                         Shape::convert_shape_to_string(indexes).c_str(),
+                         Shape::convert_shape_to_string(m_shape).c_str());
+                throw std::invalid_argument(buffer);
+            }
+
             if (!is_index_in_range(indexes))
             {
                 char buffer[NTT_ERROR_MESSAGE_SIZE];
@@ -840,6 +885,43 @@ namespace
 
             return result;
         }
+
+        Tensor ReLULayer::forward(const Tensor &input)
+        {
+            Tensor result(input.get_shape(), 0.0f);
+            Shape shape(input.get_shape());
+
+            while (!shape.is_end())
+            {
+                float value = input.get_element(shape.get_current_index());
+                result.set_element(shape.get_current_index(), std::max(0.0f, value));
+                shape.next();
+            }
+
+            return result;
+        }
+
+        Clip2DLayer::Clip2DLayer(const float &min, const float &max)
+            : m_min(min), m_max(max)
+        {
+        }
+
+        Tensor Clip2DLayer::forward(const Tensor &input)
+        {
+            Tensor result(input.get_shape(), 0.0f);
+            Shape shape(input.get_shape());
+
+            while (!shape.is_end())
+            {
+                float value = input.get_element(shape.get_current_index());
+
+                result.set_element(shape.get_current_index(), getMax(m_min, getMin(value, m_max)));
+                shape.next();
+            }
+
+            return result;
+        }
+
 #endif // NTT_MICRO_NN_IMPLEMENTATION
     }
 

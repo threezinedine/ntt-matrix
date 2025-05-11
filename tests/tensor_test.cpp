@@ -295,6 +295,12 @@ TEST(TensorTest, CopyAssignmentOperator)
     EXPECT_EQ(tensor1, tensor2);
 }
 
+TEST(TensorTest, GetElementByIndex_WithWrongShape)
+{
+    Tensor tensor = Tensor::from_vector({1.0, 2.0, 3.0});
+    EXPECT_THROW(tensor.get_element({0, 0}), std::invalid_argument);
+}
+
 TEST(TensorTest, Addition)
 {
     Tensor tensor1 = Tensor::from_vector({1.0, 2.0, 3.0});
@@ -401,4 +407,25 @@ TEST(TensorTest, Argmax)
     EXPECT_EQ(tensor.argmax(), (shape_type{1, 1}));
     EXPECT_EQ(tensor.argmax(0), Tensor::from_vector(tensor2d{{1, 1, 0}}));
     EXPECT_EQ(tensor.argmax(1), Tensor::from_vector(tensor2d{{2}, {1}}));
+}
+
+TEST(NeuralNetTest, TestReLULayer)
+{
+    Tensor input = Tensor::from_vector({-1.0, 2.0, -3.0});
+    EXPECT_EQ(ReLULayer().forward(input), Tensor::from_vector({0.0, 2.0, 0.0}));
+}
+
+TEST(NeuralNetTest, TestReLULayer_With3DInput)
+{
+    Tensor input = Tensor::from_vector(tensor3d{{{1.0, -2.0, -3.0},
+                                                 {-4.0, 5.0, 6.0}}});
+    EXPECT_EQ(ReLULayer().forward(input), Tensor::from_vector(tensor3d{{{1.0, 0.0, 0.0}, {0.0, 5.0, 6.0}}}));
+}
+
+TEST(NeuralNetTest, TestClip2D)
+{
+    Tensor input = Tensor::from_vector(tensor2d{{1.0, 2.0, 3.0},
+                                                {0.3, -5.0, -6.0}});
+    EXPECT_EQ(Clip2DLayer(-1, 1).forward(input), Tensor::from_vector(tensor2d{{1.0, 1.0, 1.0},
+                                                                              {0.3, -1.0, -1.0}}));
 }
