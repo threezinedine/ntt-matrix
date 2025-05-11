@@ -46,6 +46,7 @@ namespace
 
         public:
             static std::string convert_shape_to_string(const shape_type &shape);
+            static bool is_shape_equal(const shape_type &shape1, const shape_type &shape2);
 
         private:
             shape_type m_shape;
@@ -69,7 +70,14 @@ namespace
             std::string flatten() const;
 
         public:
+            Tensor add(const Tensor &other) const;
+            Tensor negative() const;
+            Tensor subtract(const Tensor &other) const;
+
+        public:
             void operator=(const Tensor &other);
+            Tensor operator+(const Tensor &other) const;
+            Tensor operator-(const Tensor &other) const;
 
         public:
             static Tensor from_vector(const std::vector<float> &data);
@@ -236,6 +244,24 @@ namespace
             return result;
         }
 
+        bool Shape::is_shape_equal(const shape_type &shape1, const shape_type &shape2)
+        {
+            if (shape1.size() != shape2.size())
+            {
+                return false;
+            }
+
+            for (size_t i = 0; i < shape1.size(); i++)
+            {
+                if (shape1[i] != shape2[i])
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
         std::string Tensor::flatten() const
         {
             std::string result = "[";
@@ -246,6 +272,55 @@ namespace
             result += "]";
 
             return result;
+        }
+
+        Tensor Tensor::add(const Tensor &other) const
+        {
+            if (!Shape::is_shape_equal(m_shape, other.m_shape))
+            {
+                char buffer[NTT_ERROR_MESSAGE_SIZE];
+                snprintf(buffer, sizeof(buffer),
+                         "Shape mismatch: %s != %s",
+                         Shape::convert_shape_to_string(m_shape).c_str(),
+                         Shape::convert_shape_to_string(other.m_shape).c_str());
+                throw std::invalid_argument(buffer);
+            }
+
+            Tensor result(m_shape, 0.0f);
+
+            for (size_t i = 0; i < getTotalElements(); i++)
+            {
+                result.m_data[i] = m_data[i] + other.m_data[i];
+            }
+
+            return result;
+        }
+
+        Tensor Tensor::negative() const
+        {
+            Tensor result(m_shape, 0.0f);
+
+            for (size_t i = 0; i < getTotalElements(); i++)
+            {
+                result.m_data[i] = -m_data[i];
+            }
+
+            return result;
+        }
+
+        Tensor Tensor::subtract(const Tensor &other) const
+        {
+            return add(other.negative());
+        }
+
+        Tensor Tensor::operator+(const Tensor &other) const
+        {
+            return add(other);
+        }
+
+        Tensor Tensor::operator-(const Tensor &other) const
+        {
+            return subtract(other);
         }
 
         void Tensor::operator=(const Tensor &other)
