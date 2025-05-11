@@ -78,7 +78,9 @@ namespace
             bool operator==(const Tensor &other) const;
             void operator=(const Tensor &other);
             Tensor operator+(const Tensor &other) const;
+            Tensor operator+(const float &other) const;
             Tensor operator-(const Tensor &other) const;
+            Tensor operator-(const float &other) const;
 
         public:
             static Tensor from_vector(const std::vector<float> &data);
@@ -319,9 +321,21 @@ namespace
             return add(other);
         }
 
+        Tensor Tensor::operator+(const float &other) const
+        {
+            Tensor result(m_shape, other);
+            return add(result);
+        }
+
         Tensor Tensor::operator-(const Tensor &other) const
         {
             return subtract(other);
+        }
+
+        Tensor Tensor::operator-(const float &other) const
+        {
+            Tensor result(m_shape, other);
+            return subtract(result);
         }
 
         void Tensor::operator=(const Tensor &other)

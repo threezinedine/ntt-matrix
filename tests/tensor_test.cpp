@@ -304,6 +304,14 @@ TEST(TensorTest, Addition)
     EXPECT_EQ(result, Tensor::from_vector({5.0, 7.0, 9.0}));
 }
 
+TEST(TensorTest, AddScalar)
+{
+    Tensor tensor = Tensor::from_vector({1.0, 2.0, 3.0});
+    Tensor result = tensor + 1.0;
+
+    EXPECT_EQ(result, Tensor::from_vector({2.0, 3.0, 4.0}));
+}
+
 TEST(TensorTest, AdditionWithDifferentShape)
 {
     Tensor tensor1 = Tensor::from_vector({1.0, 2.0, 3.0});
@@ -318,6 +326,14 @@ TEST(TensorTest, Subtraction)
     Tensor result = tensor1 - tensor2;
 
     EXPECT_EQ(result, Tensor::from_vector({-3.0, -3.0, -3.0}));
+}
+
+TEST(TensorTest, SubtractionWithScalar)
+{
+    Tensor tensor = Tensor::from_vector({1.0, 2.0, 3.0});
+    Tensor result = tensor - 1.0;
+
+    EXPECT_EQ(result, Tensor::from_vector({0.0, 1.0, 2.0}));
 }
 
 TEST(TensorTest, SubtractionWithDifferentShape)
