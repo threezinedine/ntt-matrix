@@ -4,6 +4,7 @@
 #include <vector>
 #include <sstream>
 #include <cmath>
+#include <exception>
 #include <limits>
 
 #if defined(NTT_MICRO_NN_STATIC)
@@ -69,8 +70,10 @@ namespace
              * @param rows: the number of rows of the matrix.
              * @param columns: the number of columns of the matrix.
              * @param defaultValue: the default value of the matrix.
+             * @param name: the name of the matrix (for debugging purposes).
              */
-            Matrix(size_t rows, size_t columns, value_type defaultValue = default_value);
+            Matrix(size_t rows, size_t columns, value_type defaultValue = default_value,
+                   const char *name = "Matrix");
 
             /**
              * Copy constructor of the matrix.
@@ -82,6 +85,8 @@ namespace
 
             inline size_t get_rows() const { return m_rows; }
             inline size_t get_columns() const { return m_columns; }
+            inline const char *get_name() const { return m_name; }
+            inline void set_name(const char *name) { memcpy(m_name, name, strlen(name) + 1); }
             inline const value_type get_element(size_t rowIndex, size_t columnIndex) const
             {
                 return m_data[rowIndex * m_columns + columnIndex];
@@ -114,6 +119,23 @@ namespace
 
             Matrix add_padding(size_t padding);
 
+            enum Axis
+            {
+                ROW = 0,
+                COLUMN = 1,
+                MATRIX = 2
+            };
+
+            /**
+             * The max operation of the matrix, which will return the maximum value of the matrix.
+             * @param axis: the axis to be used for the max operation. ROW for rows, COLUMN for columns and MATRIX for
+             *      the whole matrix.
+             * @return: the maximum value of the matrix.
+             */
+            Matrix max(Axis axis = Axis::MATRIX);
+
+            size_t argmax();
+
             void sliding(sliding_callback callback,
                          size_t window_col,
                          size_t window_row,
@@ -127,6 +149,7 @@ namespace
              * @return: true if the matrices are equal, false otherwise.
              */
             bool operator==(const Matrix &other) const;
+            void operator=(const Matrix &other);
 
             Matrix operator+(const Matrix &other);
             Matrix operator+(value_type value);
@@ -153,6 +176,7 @@ namespace
             size_t m_rows;
             size_t m_columns;
             value_type *m_data;
+            char m_name[1024];
         };
 
         /**
@@ -209,9 +233,11 @@ namespace
             return std::fabs(a - b) < std::numeric_limits<float>::epsilon();
         }
 
-        Matrix::Matrix(size_t rows, size_t columns, value_type defaultValue)
-            : m_rows(rows), m_columns(columns)
+        Matrix::Matrix(size_t rows, size_t columns, value_type defaultValue, const char *name)
+            : m_rows(rows), m_columns(columns), m_data(nullptr)
         {
+            memcpy(m_name, name, strlen(name) + 1);
+
             m_data = (value_type *)malloc(rows * columns * sizeof(value_type));
 
             for (size_t i = 0; i < rows; i++)
@@ -225,7 +251,11 @@ namespace
 
         Matrix::~Matrix()
         {
-            free(m_data);
+            if (m_data != nullptr)
+            {
+                free(m_data);
+                m_data = nullptr;
+            }
         }
 
         Matrix::Matrix(const Matrix &other)
@@ -398,6 +428,105 @@ namespace
             }
         }
 
+        Matrix Matrix::max(Axis axis)
+        {
+            if (axis == Axis::MATRIX)
+            {
+                Matrix result(1, 1);
+                for (size_t i = 0; i < m_rows; i++)
+                {
+                    for (size_t j = 0; j < m_columns; j++)
+                    {
+                        if (result.get_element(0, 0) < get_element(i, j))
+                        {
+                            result.set_element(0, 0, get_element(i, j));
+                        }
+                    }
+                }
+                return result;
+            }
+
+            if (axis == Axis::ROW)
+            {
+                Matrix result(m_rows, 1);
+                for (size_t i = 0; i < m_rows; i++)
+                {
+                    for (size_t j = 0; j < m_columns; j++)
+                    {
+                        if (result.get_element(i, 0) < get_element(i, j))
+                        {
+                            result.set_element(i, 0, get_element(i, j));
+                        }
+                    }
+                }
+
+                return result;
+            }
+
+            if (axis == Axis::COLUMN)
+            {
+                Matrix result(1, m_columns);
+                for (size_t i = 0; i < m_columns; i++)
+                {
+                    for (size_t j = 0; j < m_rows; j++)
+                    {
+                        if (result.get_element(0, i) < get_element(j, i))
+                        {
+                            result.set_element(0, i, get_element(j, i));
+                        }
+                    }
+                }
+                return result;
+            }
+            return Matrix(m_rows, m_columns);
+        }
+
+        size_t Matrix::argmax()
+        {
+            if (m_columns != 1 && m_rows != 1)
+            {
+                char message[256];
+                snprintf(
+                    message, sizeof(message),
+                    "The matrix with the size (%zu, %zu) cannot be used for the argmax operation"
+                    ", one of them must be 1",
+                    m_rows, m_columns);
+                throw std::invalid_argument(message);
+            }
+
+            size_t maxIndex = 0;
+
+            if (m_rows == 1)
+            {
+                value_type maxValue = get_element(0, 0);
+
+                for (size_t i = 0; i < m_columns; i++)
+                {
+                    if (get_element(0, i) > maxValue)
+                    {
+                        maxValue = get_element(0, i);
+                        maxIndex = i;
+                    }
+                }
+            }
+
+            if (m_columns == 1)
+            {
+                value_type maxValue = get_element(0, 0);
+
+                for (size_t i = 0; i < m_rows; i++)
+                {
+                    if (get_element(i, 0) > maxValue)
+                    {
+                        maxValue = get_element(i, 0);
+                        maxIndex = i;
+                    }
+                }
+            }
+
+            return maxIndex;
+        }
+
         Matrix Matrix::operator-(const Matrix &other)
         {
             return subtract(other);
@@ -472,6 +601,21 @@ namespace
 #endif // NTT_MICRO_NN_I8 || NTT_MICRO_NN_I16 || NTT_MICRO_NN_I32 || NTT_MICRO_NN_I64
         }
 #endif // NTT_MICRO_NN_IMPLEMENTATION
+
+        void Matrix::operator=(const Matrix &other)
+        {
+            if (m_data != nullptr)
+            {
+                free(m_data);
+                m_data = nullptr;
+            }
+
+            m_data = (value_type *)malloc(m_rows * m_columns * sizeof(value_type));
+            m_rows = other.m_rows;
+            m_columns = other.m_columns;
+            memcpy(m_name, other.m_name, strlen(other.m_name) + 1);
+            memcpy(m_data, other.m_data, m_rows * m_columns * sizeof(value_type));
+        }
 
         Matrix Matrix::create_from_vector_vector(const std::vector<std::vector<value_type>> &vector)
         {

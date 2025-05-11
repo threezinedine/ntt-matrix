@@ -42,6 +42,15 @@ int main(void)
     printf("Width: %d, Height: %d, Channel: %d", width, height, channels);
     printf("Matrix: %s", inputMatrix.to_string().c_str());
 
+    inputMatrix.set_name("inputMatrix");
+
+    fc1_weight.set_name("fc1_weight");
+    fc1_bias.set_name("fc1_bias");
+    fc2_weight.set_name("fc2_weight");
+    fc2_bias.set_name("fc2_bias");
+    fc3_weight.set_name("fc3_weight");
+    fc3_bias.set_name("fc3_bias");
+
     FullyConnectedLayer fc1(fc1_weight, fc1_bias.transpose());
     ReLU relu1 = ReLU();
     FullyConnectedLayer fc2(fc2_weight, fc2_bias.transpose());
@@ -50,14 +59,19 @@ int main(void)
 
     std::vector<Layer *> layers = {&fc1, &relu1, &fc2, &relu2, &fc3};
 
-    Matrix output = inputMatrix.toShape(width * height, 1);
-
-    for (auto const &layer : layers)
     {
-        output = layer->forward(output);
-    }
+        Matrix output = inputMatrix.toShape(width * height, 1);
+        output.set_name("output");
 
-    printf("output: %s\n", output.to_string().c_str());
+        for (auto const &layer : layers)
+        {
+            output = layer->forward(output);
+        }
+
+        printf("output: %s\n", output.to_string().c_str());
+        printf("max: %s\n", output.max(Matrix::Axis::MATRIX).to_string().c_str());
+        printf("number: %zu\n", output.argmax());
+    }
     printf("Finished\n");
     stbi_image_free(data);
     return 0;

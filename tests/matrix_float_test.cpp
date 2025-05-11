@@ -375,3 +375,34 @@ TEST(MatrixFloatTest, MatrixFloatTest_ToShape_Test)
     ntt::Matrix result = matrix.toShape(4, 2);
     EXPECT_TRUE(result == expectedResult);
 }
+
+TEST(MatrixFloatTest, MatrixFloatTest_Max_Test)
+{
+    ntt::Matrix matrix = ntt::Matrix::create_from_vector_vector({{1, 2, 3, 4},
+                                                                 {5, 10, 7, 8}});
+
+    ntt::Matrix expectedMatrixResult = ntt::Matrix::create_from_vector_vector({{10}});
+    ntt::Matrix expectedRowResult = ntt::Matrix::create_from_vector_vector({{4},
+                                                                            {10}});
+    ntt::Matrix expectedColumnResult = ntt::Matrix::create_from_vector_vector({{5, 10, 7, 8}});
+
+    EXPECT_TRUE(matrix.max(ntt::Matrix::Axis::MATRIX) == expectedMatrixResult);
+    EXPECT_TRUE(matrix.max(ntt::Matrix::Axis::ROW) == expectedRowResult);
+    EXPECT_TRUE(matrix.max(ntt::Matrix::Axis::COLUMN) == expectedColumnResult);
+}
+
+TEST(MatrixFloatTest, MatrixFloatTest_Argmax_Test)
+{
+    ntt::Matrix matrix = ntt::Matrix::create_from_vector_vector({{1, 2, 3, 4}});
+
+    EXPECT_THAT(matrix.argmax(), 3);
+}
+
+TEST(MatrixFloatTest, MatrixFloatTest_Argmax_Test_2)
+{
+    ntt::Matrix matrix = ntt::Matrix::create_from_vector_vector({{1},
+                                                                 {3},
+                                                                 {-1}});
+
+    EXPECT_THAT(matrix.argmax(), 1);
+}
