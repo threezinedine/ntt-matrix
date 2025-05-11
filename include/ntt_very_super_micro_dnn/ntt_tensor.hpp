@@ -165,6 +165,12 @@ namespace
             Tensor forward(const Tensor &input) override;
         };
 
+        class FlattenLayer : public Layer
+        {
+        public:
+            Tensor forward(const Tensor &input) override;
+        };
+
         class Conv2DLayer : public Layer
         {
         public:
@@ -1071,6 +1077,23 @@ namespace
             {
                 float value = input.get_element(shape.get_current_index());
                 result.set_element(shape.get_current_index(), 1.0f / (1.0f + std::exp(-value)));
+                shape.next();
+            }
+
+            return result;
+        }
+
+        Tensor FlattenLayer::forward(const Tensor &input)
+        {
+            Tensor result({input.getTotalElements(), 1}, 0.0f);
+            Shape shape(input.get_shape());
+
+            size_t index = 0;
+
+            while (!shape.is_end())
+            {
+                result.set_element({index, 0}, input.get_element(shape.get_current_index()));
+                index++;
                 shape.next();
             }
 

@@ -612,8 +612,6 @@ TEST(NeuralNetTest, TestConv2DLayer_WithSamePadding)
 
     Tensor bias = Tensor::from_vector(tensor2d{{0.0}});
 
-    printf("output shape: %s\n", Conv2DLayer(weights, bias, 1, 1).forward(input).to_string().c_str());
-
     EXPECT_EQ(Conv2DLayer(weights, bias, 1, 1).forward(input),
               Tensor::from_vector(tensor4d{
                   {
@@ -623,4 +621,25 @@ TEST(NeuralNetTest, TestConv2DLayer_WithSamePadding)
                        {37.0, 76.0, 80.0, 84.0, 43.0},
                        {21.0, 43.0, 45.0, 47.0, 24.0}},
                   }}));
+}
+
+TEST(NeuralNetTest, TestFlattenLayer)
+{
+    Tensor input = Tensor::from_vector(tensor4d{
+        {{
+            {1.0, 2.0, 3.0, 4.0},
+            {5.0, 6.0, 7.0, 8.0},
+        }}});
+
+    EXPECT_THAT(input.get_shape(), ::testing::ElementsAre(1, 1, 2, 4));
+
+    EXPECT_EQ(FlattenLayer().forward(input),
+              Tensor::from_vector(tensor2d{{1.0},
+                                           {2.0},
+                                           {3.0},
+                                           {4.0},
+                                           {5.0},
+                                           {6.0},
+                                           {7.0},
+                                           {8.0}}));
 }

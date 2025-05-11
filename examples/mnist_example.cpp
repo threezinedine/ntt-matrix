@@ -41,7 +41,6 @@ int main(void)
 
     printf("Width: %d, Height: %d, Channel: %d", width, height, channels);
     inputMatrix = inputMatrix / 255.0f;
-    printf("Matrix: %s", inputMatrix.to_string().c_str());
 
     FullyConnectedLayer fc1(fc1_weight, fc1_bias.reshape_clone({fc1_bias.get_shape()[0], 1}));
     ReLULayer relu1 = ReLULayer();
