@@ -18,12 +18,13 @@ int main(void)
 
     // Matrix input = Matrix::create_from_vector_vector({{1.0f, 2.0f, 3.0f}}).toShape(3, 1);
     int width, height, channels;
-    unsigned char* data = stbi_load(
-        // "C:/Users/Acer/Project/ntt-very-super-micro-dnn/examples/test_idx_2691_label_8.png", 
+    unsigned char *data = stbi_load(
+        // "C:/Users/Acer/Project/ntt-very-super-micro-dnn/examples/test_idx_2691_label_8.png",
         "C:/Users/Acer/Project/ntt-very-super-micro-dnn/examples/test_idx_9915_label_4.png",
         &width, &height, &channels, 0);
     Matrix inputMatrix(height, width);
-    if (data) {
+    if (data)
+    {
         for (int i = 0; i < height; i++)
         {
             for (int j = 0; j < width; j++)
@@ -31,7 +32,9 @@ int main(void)
                 inputMatrix.set_element(i, j, data[i * height + j]);
             }
         }
-    } else {
+    }
+    else
+    {
         printf("Error vcb\n");
         exit(-1);
     }
@@ -44,14 +47,15 @@ int main(void)
     FullyConnectedLayer fc2(fc2_weight, fc2_bias.transpose());
     ReLU relu2 = ReLU();
     FullyConnectedLayer fc3(fc3_weight, fc3_bias.transpose());
-    Softmax softmax = Softmax();
 
-    Matrix output = fc1.forward(inputMatrix.toShape(width * height, 1));
-    output = relu1.forward(output);
-    output = fc2.forward(output);
-    output = relu2.forward(output);
-    output = fc3.forward(output);
-    // output = softmax.forward(output);
+    std::vector<Layer *> layers = {&fc1, &relu1, &fc2, &relu2, &fc3};
+
+    Matrix output = inputMatrix.toShape(width * height, 1);
+
+    for (auto const &layer : layers)
+    {
+        output = layer->forward(output);
+    }
 
     printf("output: %s\n", output.to_string().c_str());
     printf("Finished\n");
