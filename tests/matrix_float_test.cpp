@@ -406,3 +406,38 @@ TEST(MatrixFloatTest, MatrixFloatTest_Argmax_Test_2)
 
     EXPECT_THAT(matrix.argmax(), 1);
 }
+
+TEST(MatrixFloatTest, MatrixFloatTest_CrossCorrelation_Test)
+{
+    ntt::Matrix matrix = ntt::Matrix::create_from_vector_vector({{1, 2, 3, 4},
+                                                                 {5, 6, 7, 8},
+                                                                 {6, 2, 3, 1},
+                                                                 {1, 2, 3, 4}});
+
+    ntt::Matrix kernel = ntt::Matrix::create_from_vector_vector({{1, 1},
+                                                                 {1, 1}});
+
+    ntt::Matrix expectedResult = ntt::Matrix::create_from_vector_vector({{14, 18, 22},
+                                                                         {19, 18, 19},
+                                                                         {11, 10, 11}});
+
+    ntt::Matrix result = matrix.cross_correlation(kernel);
+    EXPECT_TRUE(result == expectedResult);
+}
+
+TEST(MatrixFloatTest, MatrixFloatTest_CrossCorrelation_Test_2)
+{
+    ntt::Matrix matrix = ntt::Matrix::create_from_vector_vector({{1, 2, 3, 4},
+                                                                 {5, 6, 7, 8},
+                                                                 {6, 2, 3, 1},
+                                                                 {1, 2, 3, 4}});
+
+    ntt::Matrix kernel = ntt::Matrix::create_from_vector_vector({{1, 0.5},
+                                                                 {0.5, 1}});
+
+    ntt::Matrix expectedResult = ntt::Matrix::create_from_vector_vector({{10.5, 16.5},
+                                                                         {9.5, 9}});
+
+    ntt::Matrix result = matrix.cross_correlation(kernel, 2);
+    EXPECT_TRUE(result == expectedResult);
+}

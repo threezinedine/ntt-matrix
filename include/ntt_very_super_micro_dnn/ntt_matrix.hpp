@@ -116,6 +116,8 @@ namespace
 
             Matrix add_padding(size_t padding);
 
+            Matrix cross_correlation(const Matrix &other, size_t stride = 1);
+
             enum Axis
             {
                 ROW = 0,
@@ -400,6 +402,36 @@ namespace
                 for (size_t j = padding; j < m_columns + padding; j++)
                 {
                     result.set_element(i, j, get_element(i - padding, j - padding));
+                }
+            }
+
+            return result;
+        }
+
+        Matrix Matrix::cross_correlation(const Matrix &other, size_t stride)
+        {
+            size_t resultRows = (m_rows - other.m_rows) / stride + 1;
+            size_t resultColumns = (m_columns - other.m_columns) / stride + 1;
+            Matrix result(resultRows, resultColumns, default_value);
+
+            for (size_t i = 0; i < resultRows; i++)
+            {
+                for (size_t j = 0; j < resultColumns; j++)
+                {
+                    size_t indexRow = i * stride;
+                    size_t indexColumn = j * stride;
+
+                    for (size_t k = 0; k < other.m_rows; k++)
+                    {
+                        for (size_t l = 0; l < other.m_columns; l++)
+                        {
+                            result.set_element(
+                                i, j,
+                                result.get_element(i, j) +
+                                    get_element(indexRow + k, indexColumn + l) *
+                                        other.get_element(k, l));
+                        }
+                    }
                 }
             }
 
