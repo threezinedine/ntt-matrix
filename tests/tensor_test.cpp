@@ -287,16 +287,21 @@ TEST(TensorTest, ToShapeClone)
     EXPECT_THAT(tensor.get_element({2}), ::testing::FloatEq(2.1));
 }
 
+TEST(TensorTest, CopyAssignmentOperator)
+{
+    Tensor tensor1 = Tensor::from_vector({1.0, 2.0, 3.0});
+    Tensor tensor2 = Tensor::from_vector({1.0, 2.0, 3.0});
+
+    EXPECT_EQ(tensor1, tensor2);
+}
+
 TEST(TensorTest, Addition)
 {
     Tensor tensor1 = Tensor::from_vector({1.0, 2.0, 3.0});
     Tensor tensor2 = Tensor::from_vector({4.0, 5.0, 6.0});
     Tensor result = tensor1 + tensor2;
 
-    EXPECT_EQ(result.get_shape(), (shape_type{3}));
-    EXPECT_THAT(result.get_element({0}), ::testing::FloatEq(5.0));
-    EXPECT_THAT(result.get_element({1}), ::testing::FloatEq(7.0));
-    EXPECT_THAT(result.get_element({2}), ::testing::FloatEq(9.0));
+    EXPECT_EQ(result, Tensor::from_vector({5.0, 7.0, 9.0}));
 }
 
 TEST(TensorTest, AdditionWithDifferentShape)
@@ -312,10 +317,7 @@ TEST(TensorTest, Subtraction)
     Tensor tensor2 = Tensor::from_vector({4.0, 5.0, 6.0});
     Tensor result = tensor1 - tensor2;
 
-    EXPECT_EQ(result.get_shape(), (shape_type{3}));
-    EXPECT_THAT(result.get_element({0}), ::testing::FloatEq(-3.0));
-    EXPECT_THAT(result.get_element({1}), ::testing::FloatEq(-3.0));
-    EXPECT_THAT(result.get_element({2}), ::testing::FloatEq(-3.0));
+    EXPECT_EQ(result, Tensor::from_vector({-3.0, -3.0, -3.0}));
 }
 
 TEST(TensorTest, SubtractionWithDifferentShape)
@@ -330,8 +332,5 @@ TEST(TensorTest, Negative)
     Tensor tensor = Tensor::from_vector({1.0, 2.0, 3.0});
     Tensor result = tensor.negative();
 
-    EXPECT_EQ(result.get_shape(), (shape_type{3}));
-    EXPECT_THAT(result.get_element({0}), ::testing::FloatEq(-1.0));
-    EXPECT_THAT(result.get_element({1}), ::testing::FloatEq(-2.0));
-    EXPECT_THAT(result.get_element({2}), ::testing::FloatEq(-3.0));
+    EXPECT_EQ(result, Tensor::from_vector({-1.0, -2.0, -3.0}));
 }

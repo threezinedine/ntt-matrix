@@ -75,6 +75,7 @@ namespace
             Tensor subtract(const Tensor &other) const;
 
         public:
+            bool operator==(const Tensor &other) const;
             void operator=(const Tensor &other);
             Tensor operator+(const Tensor &other) const;
             Tensor operator-(const Tensor &other) const;
@@ -340,6 +341,24 @@ namespace
             {
                 m_data[i] = other.m_data[i];
             }
+        }
+
+        bool Tensor::operator==(const Tensor &other) const
+        {
+            if (m_shape != other.m_shape)
+            {
+                return false;
+            }
+
+            for (size_t i = 0; i < m_totalElements; i++)
+            {
+                if (std::fabs(m_data[i] - other.m_data[i]) > std::numeric_limits<float>::epsilon())
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         Tensor Tensor::from_vector(const std::vector<float> &data)
