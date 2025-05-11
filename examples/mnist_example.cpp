@@ -1,7 +1,7 @@
 #include <cstdio>
 
 #define NTT_MICRO_NN_IMPLEMENTATION
-#include <ntt_very_super_micro_dnn/ntt_matrix.hpp>
+#include <ntt_very_super_micro_dnn/ntt_tensor.hpp>
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
@@ -22,14 +22,14 @@ int main(void)
         // "C:/Users/Acer/Project/ntt-very-super-micro-dnn/examples/test_idx_2691_label_8.png",
         "C:/Users/Acer/Project/ntt-very-super-micro-dnn/examples/test_idx_9915_label_4.png",
         &width, &height, &channels, 0);
-    Matrix inputMatrix(height, width);
+    Tensor inputMatrix({static_cast<size_t>(height), static_cast<size_t>(width)});
     if (data)
     {
-        for (int i = 0; i < height; i++)
+        for (size_t i = 0; i < height; i++)
         {
-            for (int j = 0; j < width; j++)
+            for (size_t j = 0; j < width; j++)
             {
-                inputMatrix.set_element(i, j, data[i * height + j]);
+                inputMatrix.set_element({i, j}, data[i * height + j]);
             }
         }
     }
@@ -40,27 +40,30 @@ int main(void)
     }
 
     printf("Width: %d, Height: %d, Channel: %d", width, height, channels);
+    inputMatrix = inputMatrix / 255.0f;
     printf("Matrix: %s", inputMatrix.to_string().c_str());
 
-    FullyConnectedLayer fc1(fc1_weight, fc1_bias.transpose());
-    ReLU relu1 = ReLU();
-    FullyConnectedLayer fc2(fc2_weight, fc2_bias.transpose());
-    ReLU relu2 = ReLU();
-    FullyConnectedLayer fc3(fc3_weight, fc3_bias.transpose());
+    FullyConnectedLayer fc1(fc1_weight, fc1_bias.reshape_clone({fc1_bias.get_shape()[0], 1}));
+    ReLULayer relu1 = ReLULayer();
+    FullyConnectedLayer fc2(fc2_weight, fc2_bias.reshape_clone({fc2_bias.get_shape()[0], 1}));
+    ReLULayer relu2 = ReLULayer();
+    FullyConnectedLayer fc3(fc3_weight, fc3_bias.reshape_clone({fc3_bias.get_shape()[0], 1}));
+    SoftmaxLayer softmax = SoftmaxLayer();
 
-    std::vector<Layer *> layers = {&fc1, &relu1, &fc2, &relu2, &fc3};
+    std::vector<Layer *> layers = {&fc1, &relu1, &fc2, &relu2, &fc3, &softmax};
 
     {
-        Matrix output = inputMatrix.toShape(width * height, 1);
+        Tensor output = inputMatrix.reshape_clone({static_cast<size_t>(width * height), 1});
 
         for (auto const &layer : layers)
         {
             output = layer->forward(output);
         }
 
+        // output.reshape({output.getTotalElements()});
         printf("output: %s\n", output.to_string().c_str());
-        printf("max: %s\n", output.max(Matrix::Axis::MATRIX).to_string().c_str());
-        printf("number: %zu\n", output.argmax());
+        printf("max: %f\n", output.max());
+        printf("number: %s\n", Shape::convert_shape_to_string(output.argmax()).c_str());
     }
     printf("Finished\n");
     stbi_image_free(data);
