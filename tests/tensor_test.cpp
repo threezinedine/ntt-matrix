@@ -384,3 +384,21 @@ TEST(TensorTest, TransposeFailedBecauseOfInvalidAxis)
                                          {4.0, 5.0, 6.0}});
     EXPECT_THROW(tensor.transpose(0, 2), std::invalid_argument);
 }
+
+TEST(TensorTest, FindMax)
+{
+    Tensor tensor = Tensor::from_vector({{1.0, 5.0, 3.0},
+                                         {4.0, 2.0, 6.0}});
+    EXPECT_THAT(tensor.max(), ::testing::FloatEq(6.0));
+    EXPECT_EQ(tensor.max(0), Tensor::from_vector(tensor2d{{4.0f, 5.0f, 6.0f}}));
+    EXPECT_EQ(tensor.max(1), Tensor::from_vector(tensor2d{{5.0f}, {6.0f}}));
+}
+
+TEST(TensorTest, Argmax)
+{
+    Tensor tensor = Tensor::from_vector({{1.0, 5.0, 6.0},
+                                         {4.0, 9.0, 3.0}});
+    EXPECT_EQ(tensor.argmax(), (shape_type{1, 1}));
+    EXPECT_EQ(tensor.argmax(0), Tensor::from_vector(tensor2d{{1, 1, 0}}));
+    EXPECT_EQ(tensor.argmax(1), Tensor::from_vector(tensor2d{{2}, {1}}));
+}

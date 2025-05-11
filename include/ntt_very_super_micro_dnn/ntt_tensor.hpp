@@ -31,6 +31,11 @@ namespace
         using shape_type = std::vector<size_t>;
         using stride_type = std::vector<size_t>;
 
+        using vec = std::vector<float>;
+        using tensor2d = std::vector<vec>;
+        using tensor3d = std::vector<tensor2d>;
+        using tensor4d = std::vector<tensor3d>;
+
         class Shape
         {
         public:
@@ -70,6 +75,11 @@ namespace
             std::string to_string() const;
             std::string flatten() const;
 
+            float max() const;
+            Tensor max(const size_t &axis) const;
+            shape_type argmax() const;
+            Tensor argmax(const size_t &axis) const;
+
         public:
             Tensor add(const Tensor &other) const;
             Tensor negative() const;
@@ -88,10 +98,10 @@ namespace
             Tensor operator/(const float &other) const;
 
         public:
-            static Tensor from_vector(const std::vector<float> &data);
-            static Tensor from_vector(const std::vector<std::vector<float>> &data);
-            static Tensor from_vector(const std::vector<std::vector<std::vector<float>>> &data);
-            static Tensor from_vector(const std::vector<std::vector<std::vector<std::vector<float>>>> &data);
+            static Tensor from_vector(const vec &data);
+            static Tensor from_vector(const tensor2d &data);
+            static Tensor from_vector(const tensor3d &data);
+            static Tensor from_vector(const tensor4d &data);
 
         private:
             static size_t reloadTotalElements(const shape_type &shape);
@@ -282,6 +292,108 @@ namespace
             return result;
         }
 
+        float Tensor::max() const
+        {
+            float max = m_data[0];
+            for (size_t i = 0; i < getTotalElements(); i++)
+            {
+                if (m_data[i] > max)
+                {
+                    max = m_data[i];
+                }
+            }
+
+            return max;
+        }
+
+        Tensor Tensor::max(const size_t &axis) const
+        {
+            shape_type newShape = m_shape;
+            newShape[axis] = 1;
+            Tensor result(newShape, 0.0f);
+            Shape newShapeIndex(newShape);
+
+            size_t maxAxisSize = m_shape[axis];
+
+            while (!newShapeIndex.is_end())
+            {
+                shape_type targetIndexes = newShapeIndex.get_current_index();
+                size_t maxValue = get_element(targetIndexes);
+
+                for (size_t i = 0; i < maxAxisSize; i++)
+                {
+                    shape_type tempIndexes = targetIndexes;
+                    tempIndexes[axis] = i;
+
+                    if (get_element(tempIndexes) > maxValue)
+                    {
+                        maxValue = get_element(tempIndexes);
+                    }
+                }
+
+                result.set_element(targetIndexes, maxValue);
+                newShapeIndex.next();
+            }
+
+            return result;
+        }
+
+        shape_type Tensor::argmax() const
+        {
+            shape_type result(m_shape.size(), 0);
+            Shape argmaxIndex(m_shape);
+
+            size_t maxValue = get_element(argmaxIndex.get_current_index());
+            argmaxIndex.next();
+
+            while (!argmaxIndex.is_end())
+            {
+                if (get_element(argmaxIndex.get_current_index()) > maxValue)
+                {
+                    maxValue = get_element(argmaxIndex.get_current_index());
+                    result = argmaxIndex.get_current_index();
+                }
+
+                argmaxIndex.next();
+            }
+
+            return result;
+        }
+
+        Tensor Tensor::argmax(const size_t &axis) const
+        {
+            shape_type newShape = m_shape;
+            newShape[axis] = 1;
+            Tensor result(newShape, 0.0f);
+            Shape newShapeIndex(newShape);
+
+            size_t maxAxisSize = m_shape[axis];
+
+            while (!newShapeIndex.is_end())
+            {
+                shape_type targetIndexes = newShapeIndex.get_current_index();
+                size_t maxValue = get_element(targetIndexes);
+                size_t maxValueIndex = 0;
+
+                for (size_t i = 0; i < maxAxisSize; i++)
+                {
+                    shape_type tempIndexes = targetIndexes;
+                    tempIndexes[axis] = i;
+
+                    if (get_element(tempIndexes) > maxValue)
+                    {
+                        maxValue = get_element(tempIndexes);
+                        maxValueIndex = i;
+                    }
+                }
+
+                result.set_element(targetIndexes, maxValueIndex);
+                newShapeIndex.next();
+            }
+
+            return result;
+        }
+
         Tensor Tensor::add(const Tensor &other) const
         {
             if (!Shape::is_shape_equal(m_shape, other.m_shape))
@@ -414,7 +526,7 @@ namespace
             return divide(other);
         }
 
-        Tensor Tensor::from_vector(const std::vector<float> &data)
+        Tensor Tensor::from_vector(const vec &data)
         {
             Tensor tensor({data.size()}, 0.0f);
             for (size_t i = 0; i < data.size(); i++)
@@ -425,7 +537,7 @@ namespace
             return tensor;
         }
 
-        Tensor Tensor::from_vector(const std::vector<std::vector<float>> &data)
+        Tensor Tensor::from_vector(const tensor2d &data)
         {
             Tensor tensor({data.size(), data[0].size()}, 0.0f);
             for (size_t i = 0; i < data.size(); i++)
@@ -439,7 +551,7 @@ namespace
             return tensor;
         }
 
-        Tensor Tensor::from_vector(const std::vector<std::vector<std::vector<float>>> &data)
+        Tensor Tensor::from_vector(const tensor3d &data)
         {
             Tensor tensor({data.size(), data[0].size(), data[0][0].size()}, 0.0f);
             for (size_t i = 0; i < data.size(); i++)
@@ -455,7 +567,7 @@ namespace
             return tensor;
         }
 
-        Tensor Tensor::from_vector(const std::vector<std::vector<std::vector<std::vector<float>>>> &data)
+        Tensor Tensor::from_vector(const tensor4d &data)
         {
             Tensor tensor({data.size(), data[0].size(), data[0][0].size(), data[0][0][0].size()}, 0.0f);
             for (size_t i = 0; i < data.size(); i++)
