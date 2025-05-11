@@ -455,6 +455,13 @@ TEST(NeuralNetTest, TestSoftmaxLayer)
               Tensor::from_vector(tensor2d{{0.09003057317038046, 0.24472847105479767, 0.6652409557748219}}));
 }
 
+TEST(NeuralNetTest, TestSigmoidLayer)
+{
+    Tensor input = Tensor::from_vector(tensor2d{{1.0, -2.0, 3.0}});
+    EXPECT_EQ(SigmoidLayer().forward(input),
+              Tensor::from_vector(tensor2d{{0.7310585786300049, 0.11920292202211756, 0.9525741268224334}}));
+}
+
 TEST(NeuralNetTest, TestConv2DLayer)
 {
     // shape: [3, 1, 4, 4]
@@ -520,14 +527,14 @@ TEST(NeuralNetTest, TestCrossCorrelation_InConv2DLayer)
 
     Tensor bias = Tensor::from_vector(tensor2d{{0.0}});
 
-    EXPECT_EQ(Conv2DLayer(weights, bias, 2, false).forward(input),
+    EXPECT_EQ(Conv2DLayer(weights, bias, 2).forward(input),
               Tensor::from_vector(tensor4d{
                   {
                       {{16.0, 24.0},
                        {76.0, 84.0}},
                   }}));
 
-    EXPECT_EQ(Conv2DLayer(weights, bias, 1, false).forward(input),
+    EXPECT_EQ(Conv2DLayer(weights, bias).forward(input),
               Tensor::from_vector(tensor4d{
                   {
                       {{16.0, 20.0, 24.0},
@@ -547,7 +554,7 @@ TEST(NeuralNetTest, TestConv2DLayer_WithKernalSize1)
     Tensor weights({1, 1, 1, 1}, 1.0f);
     Tensor bias = Tensor::from_vector(tensor2d{{0.0}});
 
-    EXPECT_EQ(Conv2DLayer(weights, bias, 1, false).forward(input),
+    EXPECT_EQ(Conv2DLayer(weights, bias).forward(input),
               Tensor::from_vector(tensor4d{
                   {
                       {{1.0, 2.0},
@@ -572,9 +579,7 @@ TEST(NeuralNetTest, TestDotProduct_InConv2DLayer)
     Tensor bias({2, 1}, 0.5f);
 
     // output shape: [2, 1, 2, 2]
-    printf("result: %s\n", Conv2DLayer(weights, bias, 1, false).forward(input).to_string().c_str());
-
-    EXPECT_EQ(Conv2DLayer(weights, bias, 1, false).forward(input),
+    EXPECT_EQ(Conv2DLayer(weights, bias).forward(input),
               Tensor::from_vector(tensor4d{
                   {
                       {{2.16, 1.13},
@@ -583,5 +588,39 @@ TEST(NeuralNetTest, TestDotProduct_InConv2DLayer)
                   {
                       {{2.16, 1.13},
                        {-1.48, 1.62}},
+                  }}));
+}
+
+TEST(NeuralNetTest, TestConv2DLayer_WithSamePadding)
+{
+    Tensor input = Tensor::from_vector(tensor4d{
+        {{{1.0, 2.0, 3.0, 4.0},
+          {6.0, 7.0, 8.0, 9.0},
+          {16.0, 17.0, 18.0, 19.0},
+          {21.0, 22.0, 23.0, 24.0}}},
+    });
+
+    EXPECT_THAT(input.get_shape(), ::testing::ElementsAre(1, 1, 4, 4));
+
+    Tensor weights = Tensor::from_vector(tensor4d{
+        {
+            {{1.0, 1.0},
+             {1.0, 1.0}},
+        }});
+
+    EXPECT_THAT(weights.get_shape(), ::testing::ElementsAre(1, 1, 2, 2));
+
+    Tensor bias = Tensor::from_vector(tensor2d{{0.0}});
+
+    printf("output shape: %s\n", Conv2DLayer(weights, bias, 1, 1).forward(input).to_string().c_str());
+
+    EXPECT_EQ(Conv2DLayer(weights, bias, 1, 1).forward(input),
+              Tensor::from_vector(tensor4d{
+                  {
+                      {{1.0, 3.0, 5.0, 7.0, 4.0},
+                       {7.0, 16.0, 20.0, 24.0, 13.0},
+                       {22.0, 46.0, 50.0, 54.0, 28.0},
+                       {37.0, 76.0, 80.0, 84.0, 43.0},
+                       {21.0, 43.0, 45.0, 47.0, 24.0}},
                   }}));
 }

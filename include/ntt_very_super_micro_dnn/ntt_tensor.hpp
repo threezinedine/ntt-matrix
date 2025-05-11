@@ -159,18 +159,24 @@ namespace
             Tensor forward(const Tensor &input) override;
         };
 
+        class SigmoidLayer : public Layer
+        {
+        public:
+            Tensor forward(const Tensor &input) override;
+        };
+
         class Conv2DLayer : public Layer
         {
         public:
             Conv2DLayer(const Tensor &weights, const Tensor &bias,
-                        const size_t &stride, bool same_padding = true);
+                        const size_t &stride = 1, const size_t &padding = 0);
             Tensor forward(const Tensor &input) override;
 
         private:
             Tensor m_weights;
             Tensor m_bias;
             size_t m_stride;
-            bool m_same_padding;
+            size_t m_padding;
         };
 
 #ifdef NTT_MICRO_NN_IMPLEMENTATION
@@ -1056,9 +1062,24 @@ namespace
             return result;
         }
 
+        Tensor SigmoidLayer::forward(const Tensor &input)
+        {
+            Tensor result(input.get_shape(), 0.0f);
+            Shape shape(input.get_shape());
+
+            while (!shape.is_end())
+            {
+                float value = input.get_element(shape.get_current_index());
+                result.set_element(shape.get_current_index(), 1.0f / (1.0f + std::exp(-value)));
+                shape.next();
+            }
+
+            return result;
+        }
+
         Conv2DLayer::Conv2DLayer(const Tensor &weights, const Tensor &bias,
-                                 const size_t &stride, bool same_padding)
-            : m_weights(weights), m_bias(bias), m_stride(stride), m_same_padding(same_padding)
+                                 const size_t &stride, const size_t &padding)
+            : m_weights(weights), m_bias(bias), m_stride(stride), m_padding(padding)
         {
             if (m_weights.get_shape().size() != 4)
             {
@@ -1109,27 +1130,47 @@ namespace
                 throw std::invalid_argument(buffer);
             }
 
+            Tensor extractInput = input;
+
+            // add padding to the input
+            if (m_padding > 0)
+            {
+                shape_type paddedShape = input.get_shape();
+                paddedShape[2] += 2 * m_padding;
+                paddedShape[3] += 2 * m_padding;
+                Tensor paddedInput(paddedShape, 0.0f);
+
+                for (size_t i = 0; i < input.get_shape()[0]; i++)
+                {
+                    for (size_t j = 0; j < input.get_shape()[1]; j++)
+                    {
+                        for (size_t k = 0; k < input.get_shape()[2]; k++)
+                        {
+                            for (size_t l = 0; l < input.get_shape()[3]; l++)
+                            {
+                                paddedInput.set_element({i, j, k + m_padding, l + m_padding},
+                                                        input.get_element({i, j, k, l}));
+                            }
+                        }
+                    }
+                }
+
+                extractInput = paddedInput;
+            }
+
             shape_type outputShape = {m_bias.get_shape()[0],
                                       m_bias.get_shape()[1],
                                       0,  // height
                                       0}; // width
 
-            if (m_same_padding)
-            {
-                outputShape[2] = input.get_shape()[2];
-                outputShape[3] = input.get_shape()[3];
-            }
-            else
-            {
-                outputShape[2] = (input.get_shape()[2] - m_weights.get_shape()[2]) / m_stride + 1;
-                outputShape[3] = (input.get_shape()[3] - m_weights.get_shape()[3]) / m_stride + 1;
-            }
+            outputShape[2] = (extractInput.get_shape()[2] - m_weights.get_shape()[2]) / m_stride + 1;
+            outputShape[3] = (extractInput.get_shape()[3] - m_weights.get_shape()[3]) / m_stride + 1;
 
             Tensor result(outputShape, 0.0f);
 
             for (size_t i = 0; i < m_bias.get_shape()[0]; i++)
             {
-                for (size_t j = 0; j < input.get_shape()[1]; j++)
+                for (size_t j = 0; j < extractInput.get_shape()[1]; j++)
                 {
                     float bias_value = m_bias.get_element({i, j});
 
@@ -1150,7 +1191,7 @@ namespace
                                     for (size_t o = 0; o < m_weights.get_shape()[3]; o++)
                                     {
                                         value += m_weights.get_element({i, k, n, o}) *
-                                                 input.get_element({k, j, input_x + n, input_y + o});
+                                                 extractInput.get_element({k, j, input_x + n, input_y + o});
                                     }
                                 }
 
