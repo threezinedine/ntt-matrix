@@ -56,6 +56,7 @@ namespace
         {
         public:
             Tensor(const shape_type &shape, float defaultValue = NTT_DEFAULT_VALUE);
+            Tensor(const Tensor &other);
             ~Tensor();
 
             inline shape_type get_shape() const { return m_shape; }
@@ -360,6 +361,19 @@ namespace
             }
 
             reload_new_strides();
+        }
+
+        Tensor::Tensor(const Tensor &other)
+        {
+            m_shape = other.m_shape;
+            m_strides = other.m_strides;
+            m_totalElements = other.m_totalElements;
+            m_data = (float *)malloc(sizeof(float) * m_totalElements);
+
+            for (size_t i = 0; i < m_totalElements; i++)
+            {
+                m_data[i] = other.m_data[i];
+            }
         }
 
         void Tensor::reload_new_strides()

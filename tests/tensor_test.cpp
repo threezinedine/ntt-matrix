@@ -262,3 +262,13 @@ TEST(TensorTest, ReshapeTensor)
     EXPECT_THAT(tensor.get_element({0, 1}), ::testing::FloatEq(3.2));
     EXPECT_THAT(tensor.get_element({0, 2}), ::testing::FloatEq(2.1));
 }
+
+TEST(TensorTest, CopyConstructor)
+{
+    Tensor tensor = Tensor::from_vector({2.0, 3.2, 2.1});
+    Tensor tensor2 = tensor;
+    EXPECT_EQ(tensor2.get_shape(), (shape_type{3}));
+    EXPECT_THAT(tensor2.get_element({0}), ::testing::FloatEq(2.0));
+    EXPECT_THAT(tensor2.get_element({1}), ::testing::FloatEq(3.2));
+    EXPECT_THAT(tensor2.get_element({2}), ::testing::FloatEq(2.1));
+}
