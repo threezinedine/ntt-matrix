@@ -72,6 +72,8 @@ namespace
         public:
             Tensor add(const Tensor &other) const;
             Tensor negative() const;
+            Tensor multiply(const float &other) const;
+            Tensor divide(const float &other) const;
             Tensor subtract(const Tensor &other) const;
 
         public:
@@ -81,6 +83,8 @@ namespace
             Tensor operator+(const float &other) const;
             Tensor operator-(const Tensor &other) const;
             Tensor operator-(const float &other) const;
+            Tensor operator*(const float &other) const;
+            Tensor operator/(const float &other) const;
 
         public:
             static Tensor from_vector(const std::vector<float> &data);
@@ -299,6 +303,30 @@ namespace
             return result;
         }
 
+        Tensor Tensor::multiply(const float &other) const
+        {
+            Tensor result(m_shape, 0.0f);
+
+            for (size_t i = 0; i < getTotalElements(); i++)
+            {
+                result.m_data[i] = m_data[i] * other;
+            }
+
+            return result;
+        }
+
+        Tensor Tensor::divide(const float &other) const
+        {
+            Tensor result(m_shape, 0.0f);
+
+            for (size_t i = 0; i < getTotalElements(); i++)
+            {
+                result.m_data[i] = m_data[i] / other;
+            }
+
+            return result;
+        }
+
         Tensor Tensor::negative() const
         {
             Tensor result(m_shape, 0.0f);
@@ -373,6 +401,16 @@ namespace
             }
 
             return true;
+        }
+
+        Tensor Tensor::operator*(const float &other) const
+        {
+            return multiply(other);
+        }
+
+        Tensor Tensor::operator/(const float &other) const
+        {
+            return divide(other);
         }
 
         Tensor Tensor::from_vector(const std::vector<float> &data)

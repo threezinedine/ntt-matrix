@@ -350,3 +350,19 @@ TEST(TensorTest, Negative)
 
     EXPECT_EQ(result, Tensor::from_vector({-1.0, -2.0, -3.0}));
 }
+
+TEST(TensorTest, Multiplication)
+{
+    Tensor tensor1 = Tensor::from_vector({1.0, 2.0, 3.0});
+    Tensor result = tensor1 * 2.0;
+
+    EXPECT_EQ(result, Tensor::from_vector({2.0, 4.0, 6.0}));
+}
+
+TEST(TensorTest, Division)
+{
+    Tensor tensor1 = Tensor::from_vector({1.0, 2.0, 3.0});
+    Tensor result = tensor1 / 2.0;
+
+    EXPECT_EQ(result, Tensor::from_vector({0.5, 1.0, 1.5}));
+}
