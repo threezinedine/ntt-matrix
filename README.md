@@ -1,2 +1,2 @@
 # ntt-matrix
-Matrix operation library
+Tensor operation library

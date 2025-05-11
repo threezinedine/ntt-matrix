@@ -10,13 +10,13 @@ parser.add_argument("--vector", "-V", action="store_true")
 args = parser.parse_args()
 
 template_string = """
-ntt::Matrix {{name}} = ntt::Matrix::create_from_vector_vector(
+ntt::Tensor {{name}} = ntt::Tensor::create_from_vector_vector(
     {{data}}
 );
 """
 
 template_vector_string = """
-ntt::Matrix {{name}} = ntt::Matrix::create_from_vector(
+ntt::Tensor {{name}} = ntt::Tensor::create_from_vector(
     {{data}}
 );
 """

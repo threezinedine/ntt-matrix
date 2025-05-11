@@ -16,13 +16,13 @@ int main(void)
 #include "fc3_weight.tasm"
 #include "fc3_bias.tasm"
 
-    // Matrix input = Matrix::create_from_vector_vector({{1.0f, 2.0f, 3.0f}}).toShape(3, 1);
+    // Tensor input = Tensor::create_from_vector_vector({{1.0f, 2.0f, 3.0f}}).toShape(3, 1);
     int width, height, channels;
     unsigned char *data = stbi_load(
         // "C:/Users/Acer/Project/ntt-very-super-micro-dnn/examples/test_idx_2691_label_8.png",
         "C:/Users/Acer/Project/ntt-very-super-micro-dnn/examples/test_idx_9915_label_4.png",
         &width, &height, &channels, 0);
-    Matrix inputMatrix(height, width);
+    Tensor inputMatrix(height, width);
     if (data)
     {
         for (int i = 0; i < height; i++)
@@ -40,7 +40,7 @@ int main(void)
     }
 
     printf("Width: %d, Height: %d, Channel: %d", width, height, channels);
-    printf("Matrix: %s", inputMatrix.to_string().c_str());
+    printf("Tensor: %s", inputMatrix.to_string().c_str());
 
     FullyConnectedLayer fc1(fc1_weight, fc1_bias.transpose());
     ReLU relu1 = ReLU();
@@ -51,7 +51,7 @@ int main(void)
     std::vector<Layer *> layers = {&fc1, &relu1, &fc2, &relu2, &fc3};
 
     {
-        Matrix output = inputMatrix.toShape(width * height, 1);
+        Tensor output = inputMatrix.toShape(width * height, 1);
 
         for (auto const &layer : layers)
         {
@@ -59,7 +59,7 @@ int main(void)
         }
 
         printf("output: %s\n", output.to_string().c_str());
-        printf("max: %s\n", output.max(Matrix::Axis::MATRIX).to_string().c_str());
+        printf("max: %s\n", output.max(Tensor::Axis::MATRIX).to_string().c_str());
         printf("number: %zu\n", output.argmax());
     }
     printf("Finished\n");
