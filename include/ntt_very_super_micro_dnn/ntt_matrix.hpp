@@ -72,8 +72,7 @@ namespace
              * @param defaultValue: the default value of the matrix.
              * @param name: the name of the matrix (for debugging purposes).
              */
-            Matrix(size_t rows, size_t columns, value_type defaultValue = default_value,
-                   const char *name = "Matrix");
+            Matrix(size_t rows, size_t columns, value_type defaultValue = default_value);
 
             /**
              * Copy constructor of the matrix.
@@ -85,8 +84,6 @@ namespace
 
             inline size_t get_rows() const { return m_rows; }
             inline size_t get_columns() const { return m_columns; }
-            inline const char *get_name() const { return m_name; }
-            inline void set_name(const char *name) { memcpy(m_name, name, strlen(name) + 1); }
             inline const value_type get_element(size_t rowIndex, size_t columnIndex) const
             {
                 return m_data[rowIndex * m_columns + columnIndex];
@@ -176,7 +173,6 @@ namespace
             size_t m_rows;
             size_t m_columns;
             value_type *m_data;
-            char m_name[1024];
         };
 
         /**
@@ -233,11 +229,9 @@ namespace
             return std::fabs(a - b) < std::numeric_limits<float>::epsilon();
         }
 
-        Matrix::Matrix(size_t rows, size_t columns, value_type defaultValue, const char *name)
+        Matrix::Matrix(size_t rows, size_t columns, value_type defaultValue)
             : m_rows(rows), m_columns(columns), m_data(nullptr)
         {
-            memcpy(m_name, name, strlen(name) + 1);
-
             m_data = (value_type *)malloc(rows * columns * sizeof(value_type));
 
             for (size_t i = 0; i < rows; i++)
@@ -610,10 +604,9 @@ namespace
                 m_data = nullptr;
             }
 
-            m_data = (value_type *)malloc(m_rows * m_columns * sizeof(value_type));
             m_rows = other.m_rows;
             m_columns = other.m_columns;
-            memcpy(m_name, other.m_name, strlen(other.m_name) + 1);
+            m_data = (value_type *)malloc(m_rows * m_columns * sizeof(value_type));
             memcpy(m_data, other.m_data, m_rows * m_columns * sizeof(value_type));
         }
 
