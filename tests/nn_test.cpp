@@ -63,8 +63,5 @@ TEST(NNTest, Softmax)
                                                                          {0.24472847105479767},
                                                                          {0.6652409557748219}});
 
-    printf("output: %s\n", output.to_string().c_str());
-    printf("expectedOutput: %s\n", expectedOutput.to_string().c_str());
-
     EXPECT_TRUE(output == expectedOutput);
 }

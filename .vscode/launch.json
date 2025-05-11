@@ -15,7 +15,7 @@
             "name": "Test (Debug)",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/Windows/MinGW/Debug/tests/NTTMatrixTests.exe",
+            "program": "${workspaceFolder}/build/Windows/MinGW/Debug/tests/NTTMicroDNNTests.exe",
             "cwd": "${workspaceFolder}/build/Windows/MinGW/Debug/tests",
         }
         
