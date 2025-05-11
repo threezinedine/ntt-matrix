@@ -63,6 +63,7 @@ namespace
             float get_element(const shape_type &indexes) const;
             void set_element(const shape_type &indexes, float value);
             void reshape(const shape_type &newShape);
+            Tensor reshape_clone(const shape_type &newShape);
 
             std::string to_string() const;
             std::string flatten() const;
@@ -461,6 +462,13 @@ namespace
 
             m_shape = newShape;
             reload_new_strides();
+        }
+
+        Tensor Tensor::reshape_clone(const shape_type &newShape)
+        {
+            Tensor newTensor(*this);
+            newTensor.reshape(newShape);
+            return newTensor;
         }
 
         std::string Tensor::to_string() const
