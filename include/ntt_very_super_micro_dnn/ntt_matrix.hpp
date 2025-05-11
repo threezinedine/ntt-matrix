@@ -213,6 +213,17 @@ namespace
             virtual Matrix forward(const Matrix &input) override;
         };
 
+        class ClipLayer : public Layer
+        {
+        public:
+            ClipLayer(value_type min, value_type max);
+            virtual Matrix forward(const Matrix &input) override;
+
+        private:
+            value_type m_min;
+            value_type m_max;
+        };
+
         class Sigmoid : public Layer
         {
         public:
@@ -741,6 +752,25 @@ namespace
                 for (size_t j = 0; j < input.get_columns(); j++)
                 {
                     result.set_element(i, j, 1.0f / (1.0f + std::exp(-input.get_element(i, j))));
+                }
+            }
+            return result;
+        }
+
+        ClipLayer::ClipLayer(value_type min, value_type max)
+            : m_min(min), m_max(max)
+        {
+        }
+
+        Matrix ClipLayer::forward(const Matrix &input)
+        {
+            Matrix result(input.get_rows(), input.get_columns());
+            for (size_t i = 0; i < input.get_rows(); i++)
+            {
+                for (size_t j = 0; j < input.get_columns(); j++)
+                {
+                    result.set_element(i, j, input.get_element(i, j) < m_min ? m_min : input.get_element(i, j) > m_max ? m_max
+                                                                                                                       : input.get_element(i, j));
                 }
             }
             return result;

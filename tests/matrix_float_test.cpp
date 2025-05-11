@@ -441,3 +441,15 @@ TEST(MatrixFloatTest, MatrixFloatTest_CrossCorrelation_Test_2)
     ntt::Matrix result = matrix.cross_correlation(kernel, 2);
     EXPECT_TRUE(result == expectedResult);
 }
+
+TEST(MatrixFloatTest, MatrixFloatTest_Clip_Test)
+{
+    ntt::Matrix matrix = ntt::Matrix::create_from_vector_vector({{1, 2, 3, 4},
+                                                                 {5, 6, 7, 8}});
+
+    ntt::Matrix expectedResult = ntt::Matrix::create_from_vector_vector({{3, 3, 3, 4},
+                                                                         {5, 6, 6, 6}});
+
+    ntt::Matrix result = ntt::ClipLayer(3, 6).forward(matrix);
+    EXPECT_TRUE(result == expectedResult);
+}
