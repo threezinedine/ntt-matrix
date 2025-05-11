@@ -61,6 +61,7 @@ namespace
             inline shape_type get_shape() const { return m_shape; }
             float get_element(const shape_type &indexes) const;
             void set_element(const shape_type &indexes, float value);
+            void reshape(const shape_type &newShape);
 
             std::string to_string() const;
             std::string flatten() const;
@@ -75,9 +76,10 @@ namespace
             static Tensor from_vector(const std::vector<std::vector<std::vector<std::vector<float>>>> &data);
 
         private:
-            const size_t reloadTotalElements();
+            static size_t reloadTotalElements(const shape_type &shape);
             inline const size_t getTotalElements() const { return m_totalElements; }
             bool is_index_in_range(const shape_type &indexes) const;
+            void reload_new_strides();
 
         private:
             shape_type m_shape;
@@ -323,14 +325,14 @@ namespace
             return tensor;
         }
 
-        const size_t Tensor::reloadTotalElements()
+        size_t Tensor::reloadTotalElements(const shape_type &shape)
         {
-            m_totalElements = 1;
-            for (size_t i = 0; i < m_shape.size(); i++)
+            size_t result = 1;
+            for (size_t i = 0; i < shape.size(); i++)
             {
-                m_totalElements *= m_shape[i];
+                result *= shape[i];
             }
-            return m_totalElements;
+            return result;
         }
 
         bool Tensor::is_index_in_range(const shape_type &indexes) const
@@ -348,7 +350,7 @@ namespace
         Tensor::Tensor(const shape_type &shape, float defaultValue)
             : m_shape(shape)
         {
-            reloadTotalElements();
+            m_totalElements = reloadTotalElements(m_shape);
 
             m_data = (float *)malloc(sizeof(float) * getTotalElements());
 
@@ -357,17 +359,24 @@ namespace
                 m_data[i] = defaultValue;
             }
 
+            reload_new_strides();
+        }
+
+        void Tensor::reload_new_strides()
+        {
             size_t currentStride = 1;
-            for (size_t i = 1; i < shape.size(); i++)
+            for (size_t i = 1; i < m_shape.size(); i++)
             {
-                currentStride *= shape[i];
+                currentStride *= m_shape[i];
             }
 
-            for (size_t i = 1; i < shape.size(); i++)
+            m_strides.clear();
+            for (size_t i = 1; i < m_shape.size(); i++)
             {
                 m_strides.push_back(currentStride);
-                currentStride /= shape[i];
+                currentStride /= m_shape[i];
             }
+
             m_strides.push_back(1);
         }
 
@@ -403,6 +412,16 @@ namespace
 
         void Tensor::set_element(const shape_type &indexes, float value)
         {
+            if (!is_index_in_range(indexes))
+            {
+                char buffer[NTT_ERROR_MESSAGE_SIZE];
+                snprintf(buffer, sizeof(buffer),
+                         "Index is out of range: %s not in range of %s",
+                         Shape::convert_shape_to_string(indexes).c_str(),
+                         Shape::convert_shape_to_string(m_shape).c_str());
+                throw std::out_of_range(buffer);
+            }
+
             size_t index = 0;
             for (size_t i = 0; i < indexes.size(); i++)
             {
@@ -410,6 +429,24 @@ namespace
             }
 
             m_data[index] = value;
+        }
+
+        void Tensor::reshape(const shape_type &newShape)
+        {
+            if (reloadTotalElements(newShape) != getTotalElements())
+            {
+                char buffer[NTT_ERROR_MESSAGE_SIZE];
+                snprintf(buffer, sizeof(buffer),
+                         "Total elements mismatch: %zu (%s) != %zu (%s)",
+                         reloadTotalElements(newShape),
+                         Shape::convert_shape_to_string(newShape).c_str(),
+                         getTotalElements(),
+                         Shape::convert_shape_to_string(m_shape).c_str());
+                throw std::invalid_argument(buffer);
+            }
+
+            m_shape = newShape;
+            reload_new_strides();
         }
 
         std::string Tensor::to_string() const

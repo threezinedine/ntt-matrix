@@ -237,3 +237,28 @@ TEST(TensorTest, GetElementWithExceedingIndex)
     EXPECT_THROW(tensor.get_element({2, 0}), std::out_of_range);
     EXPECT_THROW(tensor.get_element({0, 2}), std::out_of_range);
 }
+
+TEST(TensorTest, SetElementWithExceedingIndex)
+{
+    Tensor tensor({2, 2}, 1);
+    EXPECT_THROW(tensor.set_element({2, 2}, 1), std::out_of_range);
+    EXPECT_THROW(tensor.set_element({2, 0}, 1), std::out_of_range);
+    EXPECT_THROW(tensor.set_element({0, 2}, 1), std::out_of_range);
+}
+
+TEST(TensorTest, ReshapeFailedBecauseOfTotalElementsMismatch)
+{
+    Tensor tensor({2, 2}, 1);
+    EXPECT_THROW(tensor.reshape({3, 3}), std::invalid_argument);
+}
+
+TEST(TensorTest, ReshapeTensor)
+{
+    Tensor tensor = Tensor::from_vector({2.0, 3.2, 2.1});
+
+    tensor.reshape({1, 3});
+    EXPECT_EQ(tensor.get_shape(), (shape_type{1, 3}));
+    EXPECT_THAT(tensor.get_element({0, 0}), ::testing::FloatEq(2.0));
+    EXPECT_THAT(tensor.get_element({0, 1}), ::testing::FloatEq(3.2));
+    EXPECT_THAT(tensor.get_element({0, 2}), ::testing::FloatEq(2.1));
+}
