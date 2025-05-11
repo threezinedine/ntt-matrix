@@ -20,6 +20,8 @@
 #include <cstdlib>
 #endif
 
+#define NTT_ERROR_MESSAGE_SIZE 1994
+
 #ifdef NTT_MICRO_NN_IMPLEMENTATION
 namespace
 {
@@ -276,7 +278,7 @@ namespace
         {
             if (m_columns != other.m_rows)
             {
-                char message[512];
+                char message[NTT_ERROR_MESSAGE_SIZE];
                 snprintf(
                     message, sizeof(message),
                     "The first matrix has size (%zu, %zu) which is not matching "
@@ -320,7 +322,7 @@ namespace
         {
             if (rows * columns != m_rows * m_columns)
             {
-                char message[256];
+                char message[NTT_ERROR_MESSAGE_SIZE];
                 snprintf(
                     message, sizeof(message),
                     "The new size (%zu, %zu) does not match with the previous size (%zu, %zu)",
@@ -344,7 +346,7 @@ namespace
         {
             if (m_rows != other.m_rows || m_columns != other.m_columns)
             {
-                char message[256];
+                char message[NTT_ERROR_MESSAGE_SIZE];
                 snprintf(
                     message, sizeof(message),
                     "The matrix with the size (%zu, %zu) cannot be added to the matrix with the size (%zu, %zu)",
@@ -384,7 +386,7 @@ namespace
         {
             if (m_rows != other.m_rows || m_columns != other.m_columns)
             {
-                char message[256];
+                char message[NTT_ERROR_MESSAGE_SIZE];
                 snprintf(
                     message, sizeof(message),
                     "The matrix with the size (%zu, %zu) cannot be subtracted from the matrix with the size (%zu, %zu)",
@@ -522,7 +524,7 @@ namespace
         {
             if (m_columns != 1 && m_rows != 1)
             {
-                char message[256];
+                char message[NTT_ERROR_MESSAGE_SIZE];
                 snprintf(
                     message, sizeof(message),
                     "The matrix with the size (%zu, %zu) cannot be used for the argmax operation"
