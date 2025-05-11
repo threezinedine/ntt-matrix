@@ -366,3 +366,21 @@ TEST(TensorTest, Division)
 
     EXPECT_EQ(result, Tensor::from_vector({0.5, 1.0, 1.5}));
 }
+
+TEST(TensorTest, Transpose)
+{
+    Tensor tensor = Tensor::from_vector({{1.0, 2.0, 3.0},
+                                         {4.0, 5.0, 6.0}});
+    Tensor result = tensor.transpose(0, 1);
+
+    EXPECT_EQ(result, Tensor::from_vector({{1.0, 4.0},
+                                           {2.0, 5.0},
+                                           {3.0, 6.0}}));
+}
+
+TEST(TensorTest, TransposeFailedBecauseOfInvalidAxis)
+{
+    Tensor tensor = Tensor::from_vector({{1.0, 2.0, 3.0},
+                                         {4.0, 5.0, 6.0}});
+    EXPECT_THROW(tensor.transpose(0, 2), std::invalid_argument);
+}

@@ -65,6 +65,7 @@ namespace
             void set_element(const shape_type &indexes, float value);
             void reshape(const shape_type &newShape);
             Tensor reshape_clone(const shape_type &newShape);
+            Tensor transpose(const size_t &axis1, const size_t &axis2) const;
 
             std::string to_string() const;
             std::string flatten() const;
@@ -615,6 +616,38 @@ namespace
             Tensor newTensor(*this);
             newTensor.reshape(newShape);
             return newTensor;
+        }
+
+        Tensor Tensor::transpose(const size_t &axis1, const size_t &axis2) const
+        {
+            if (axis1 >= m_shape.size() || axis2 >= m_shape.size())
+            {
+                char buffer[NTT_ERROR_MESSAGE_SIZE];
+                snprintf(buffer, sizeof(buffer),
+                         "Invalid axis: %zu or %zu not in range of %zu",
+                         axis1, axis2, m_shape.size());
+                throw std::invalid_argument(buffer);
+            }
+
+            shape_type newShape = m_shape;
+            newShape[axis1] = m_shape[axis2];
+            newShape[axis2] = m_shape[axis1];
+
+            Tensor result(newShape, 0.0f);
+            Shape shape(m_shape);
+
+            while (!shape.is_end())
+            {
+                shape_type targetIndexes = shape.get_current_index();
+                size_t temp = targetIndexes[axis1];
+                targetIndexes[axis1] = targetIndexes[axis2];
+                targetIndexes[axis2] = temp;
+
+                result.set_element(targetIndexes, get_element(shape.get_current_index()));
+                shape.next();
+            }
+
+            return result;
         }
 
         std::string Tensor::to_string() const
