@@ -784,3 +784,27 @@ TEST(NeuralNetTest, TestMaxPooling2DLayer_WithPadding)
                        {13.0, 14.0, 15.0, 16.0, 16.0}},
                   }}));
 }
+
+TEST(NeuralNetTest, TestGlobalAveragePooling2DLayer)
+{
+    Tensor input = Tensor::from_vector(tensor4d{
+        {{{{3.2, 2.1, 1.0},
+           {-0.3, 0.2, 0.1},
+           {0.3, 0.2, 0.1}}}},
+        {{{{1.0, 1.0, 1.0},
+           {1.0, 1.0, 1.0},
+           {1.0, 1.0, 1.0}}}},
+        {{{{1.0, 0.0, 0.0},
+           {0.0, 1.0, 0.0},
+           {0.0, 0.0, 1.0}}}},
+    });
+
+    EXPECT_THAT(input.get_shape(), ::testing::ElementsAre(3, 1, 3, 3));
+
+    EXPECT_EQ(GlobalAveragePooling2DLayer().forward(input),
+              Tensor::from_vector(tensor4d{
+                  {{{0.7666666666666667}}},
+                  {{{1.0}}},
+                  {{{0.3333333333333333}}},
+              }));
+}

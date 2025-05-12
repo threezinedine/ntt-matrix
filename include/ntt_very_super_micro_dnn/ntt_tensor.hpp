@@ -187,6 +187,12 @@ namespace
             size_t m_group;
         };
 
+        class GlobalAveragePooling2DLayer : public Layer
+        {
+        public:
+            Tensor forward(const Tensor &input) override;
+        };
+
         class MaxPooling2DLayer : public Layer
         {
         public:
@@ -1393,6 +1399,46 @@ namespace
                             result.set_element({i, j, k, l}, maxValue);
                         }
                     }
+                }
+            }
+
+            return result;
+        }
+
+        Tensor GlobalAveragePooling2DLayer::forward(const Tensor &input)
+        {
+            if (input.get_shape().size() != 4)
+            {
+                char buffer[NTT_ERROR_MESSAGE_SIZE];
+                snprintf(buffer, sizeof(buffer),
+                         "Input must be a 4D tensor: %s",
+                         Shape::convert_shape_to_string(input.get_shape()).c_str());
+            }
+
+            shape_type outputShape = {input.get_shape()[0],
+                                      input.get_shape()[1],
+                                      1,
+                                      1};
+
+            Tensor result(outputShape, 0.0f);
+
+            for (size_t i = 0; i < input.get_shape()[0]; i++)
+            {
+                for (size_t j = 0; j < input.get_shape()[1]; j++)
+                {
+                    float sum = 0.0f;
+                    size_t count = 0;
+
+                    for (size_t k = 0; k < input.get_shape()[2]; k++)
+                    {
+                        for (size_t l = 0; l < input.get_shape()[3]; l++)
+                        {
+                            sum += input.get_element({i, j, k, l});
+                            count++;
+                        }
+                    }
+
+                    result.set_element({i, j, 0, 0}, sum / count);
                 }
             }
 
