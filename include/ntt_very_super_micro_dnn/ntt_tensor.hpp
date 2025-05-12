@@ -175,7 +175,8 @@ namespace
         {
         public:
             Conv2DLayer(const Tensor &weights, const Tensor &bias,
-                        const size_t &stride = 1, const size_t &padding = 0);
+                        const size_t &stride = 1, const size_t &padding = 0,
+                        const size_t &group = 1);
             Tensor forward(const Tensor &input) override;
 
         private:
@@ -183,12 +184,14 @@ namespace
             Tensor m_bias;
             size_t m_stride;
             size_t m_padding;
+            size_t m_group;
         };
 
         class MaxPooling2DLayer : public Layer
         {
         public:
-            MaxPooling2DLayer(const size_t &poolSize, const size_t &stride = 1, const size_t &padding = 0);
+            MaxPooling2DLayer(const size_t &poolSize, const size_t &stride = 1,
+                              const size_t &padding = 0);
             Tensor forward(const Tensor &input) override;
 
         private:
@@ -1113,9 +1116,21 @@ namespace
         }
 
         Conv2DLayer::Conv2DLayer(const Tensor &weights, const Tensor &bias,
-                                 const size_t &stride, const size_t &padding)
-            : m_weights(weights), m_bias(bias), m_stride(stride), m_padding(padding)
+                                 const size_t &stride, const size_t &padding,
+                                 const size_t &group)
+            : m_weights(weights), m_bias(bias),
+              m_stride(stride), m_padding(padding),
+              m_group(group)
         {
+            if (m_group != 1 && m_group != m_weights.get_shape()[0] && m_group != 2)
+            {
+                char buffer[NTT_ERROR_MESSAGE_SIZE];
+                snprintf(buffer, sizeof(buffer),
+                         "Group must be 1, %zu, or %zu",
+                         2, m_weights.get_shape()[0]);
+                throw std::invalid_argument(buffer);
+            }
+
             if (m_weights.get_shape().size() != 4)
             {
                 char buffer[NTT_ERROR_MESSAGE_SIZE];
@@ -1155,14 +1170,33 @@ namespace
                 throw std::invalid_argument(buffer);
             }
 
-            if (m_weights.get_shape()[1] != input.get_shape()[0])
+            if (m_group == 1)
             {
-                char buffer[NTT_ERROR_MESSAGE_SIZE];
-                snprintf(buffer, sizeof(buffer),
-                         "Weights and input dimensions mismatch: %s != %s",
-                         Shape::convert_shape_to_string(m_weights.get_shape()).c_str(),
-                         Shape::convert_shape_to_string(input.get_shape()).c_str());
-                throw std::invalid_argument(buffer);
+                if (m_weights.get_shape()[1] != input.get_shape()[0])
+                {
+                    char buffer[NTT_ERROR_MESSAGE_SIZE];
+                    snprintf(buffer, sizeof(buffer),
+                             "Weights and input dimensions mismatch: %s != %s",
+                             Shape::convert_shape_to_string(m_weights.get_shape()).c_str(),
+                             Shape::convert_shape_to_string(input.get_shape()).c_str());
+                    throw std::invalid_argument(buffer);
+                }
+            }
+            else if (m_group == 2)
+            {
+            }
+            else
+            {
+                if (m_weights.get_shape()[0] != input.get_shape()[0] ||
+                    m_weights.get_shape()[1] != input.get_shape()[1])
+                {
+                    char buffer[NTT_ERROR_MESSAGE_SIZE];
+                    snprintf(buffer, sizeof(buffer),
+                             "Weights and input dimensions mismatch: %s != %s",
+                             Shape::convert_shape_to_string(m_weights.get_shape()).c_str(),
+                             Shape::convert_shape_to_string(input.get_shape()).c_str());
+                    throw std::invalid_argument(buffer);
+                }
             }
 
             Tensor extractInput = input;
@@ -1203,47 +1237,88 @@ namespace
 
             Tensor result(outputShape, 0.0f);
 
-            for (size_t i = 0; i < m_bias.get_shape()[0]; i++)
+            if (m_group == 1)
             {
-                for (size_t j = 0; j < extractInput.get_shape()[1]; j++)
+                for (size_t i = 0; i < m_bias.get_shape()[0]; i++)
                 {
-                    float bias_value = m_bias.get_element({i, j});
-
-                    for (size_t k = 0; k < m_weights.get_shape()[1]; k++)
+                    for (size_t j = 0; j < extractInput.get_shape()[1]; j++)
                     {
-                        // TODO: implement the cross-correlation code
-                        for (size_t l = 0; l < result.get_shape()[2]; l++)
-                        {
-                            for (size_t m = 0; m < result.get_shape()[3]; m++)
-                            {
-                                size_t input_x = l * m_stride;
-                                size_t input_y = m * m_stride;
+                        float bias_value = m_bias.get_element({i, j});
 
+                        for (size_t k = 0; k < m_weights.get_shape()[1]; k++)
+                        {
+                            // TODO: implement the cross-correlation code
+                            for (size_t l = 0; l < result.get_shape()[2]; l++)
+                            {
+                                for (size_t m = 0; m < result.get_shape()[3]; m++)
+                                {
+                                    size_t input_x = l * m_stride;
+                                    size_t input_y = m * m_stride;
+
+                                    float value = 0.0f;
+
+                                    for (size_t n = 0; n < m_weights.get_shape()[2]; n++)
+                                    {
+                                        for (size_t o = 0; o < m_weights.get_shape()[3]; o++)
+                                        {
+                                            value += m_weights.get_element({i, k, n, o}) *
+                                                     extractInput.get_element({k, j, input_x + n, input_y + o});
+                                        }
+                                    }
+
+                                    result.set_element({i, j, l, m},
+                                                       result.get_element({i, j, l, m}) + value +
+                                                           bias_value / m_weights.get_shape()[1]);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            else if (m_group == 2)
+            {
+                throw std::runtime_error("Group 2 is not implemented yet");
+            }
+            else
+            {
+                for (size_t i = 0; i < m_weights.get_shape()[0]; i++)
+                {
+                    for (size_t j = 0; j < m_weights.get_shape()[1]; j++)
+                    {
+                        float bias_value = m_bias.get_element({i, j});
+
+                        for (size_t k = 0; k < result.get_shape()[2]; k++)
+                        {
+                            for (size_t l = 0; l < result.get_shape()[3]; l++)
+                            {
+                                size_t input_x = k * m_stride;
+                                size_t input_y = l * m_stride;
                                 float value = 0.0f;
 
-                                for (size_t n = 0; n < m_weights.get_shape()[2]; n++)
+                                for (size_t m = 0; m < m_weights.get_shape()[2]; m++)
                                 {
-                                    for (size_t o = 0; o < m_weights.get_shape()[3]; o++)
+                                    for (size_t n = 0; n < m_weights.get_shape()[3]; n++)
                                     {
-                                        value += m_weights.get_element({i, k, n, o}) *
-                                                 extractInput.get_element({k, j, input_x + n, input_y + o});
+                                        value += extractInput.get_element({i, j, input_x + m, input_y + n}) *
+                                                 m_weights.get_element({i, j, m, n});
                                     }
                                 }
 
-                                result.set_element({i, j, l, m},
-                                                   result.get_element({i, j, l, m}) + value +
+                                result.set_element({i, j, k, l},
+                                                   result.get_element({i, j, k, l}) + value +
                                                        bias_value / m_weights.get_shape()[1]);
                             }
                         }
                     }
                 }
             }
-
             return result;
         }
 
-        MaxPooling2DLayer::MaxPooling2DLayer(const size_t &poolSize, const size_t &stride, const size_t &padding)
-            : m_poolSize(poolSize), m_stride(stride), m_padding(padding)
+        MaxPooling2DLayer::MaxPooling2DLayer(const size_t &poolSize, const size_t &stride,
+                                             const size_t &padding)
+            : m_poolSize(poolSize), m_stride(stride),
+              m_padding(padding)
         {
         }
 

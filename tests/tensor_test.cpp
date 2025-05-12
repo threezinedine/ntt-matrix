@@ -675,6 +675,70 @@ TEST(NeuralNetTest, TestMaxPooling2DLayer)
                   }}));
 }
 
+TEST(NeuralNetTest, TestMaxPoolingWithGroup)
+{
+    Tensor input = Tensor::from_vector(tensor4d{
+        {{
+            {{1.0, 2.0, 3.0, 4.0},
+             {5.0, 6.0, 7.0, 8.0},
+             {9.0, 10.0, 11.0, 12.0},
+             {13.0, 14.0, 15.0, 16.0}},
+        }},
+        {{
+            {{1.0, 2.0, 3.0, 4.0},
+             {9.0, 10.0, 11.0, 12.0},
+             {5.0, 6.0, 7.0, 8.0},
+             {13.0, 14.0, 15.0, 16.0}},
+        }},
+        {{
+            {{1.0, 2.0, 3.0, 4.0},
+             {5.0, 6.0, 7.0, 8.0},
+             {9.0, 10.0, 11.0, 12.0},
+             {13.0, 14.0, 15.0, 16.0}},
+        }},
+    });
+    EXPECT_THAT(input.get_shape(), ::testing::ElementsAre(3, 1, 4, 4));
+
+    Tensor weights = Tensor::from_vector(tensor4d{
+        {{
+            {{0.5, 0.5},
+             {0.5, 0.5}},
+        }},
+        {{
+            {{0.5, 0.5},
+             {0.5, 0.5}},
+        }},
+        {{
+            {{0.5, 0.5},
+             {0.5, 0.5}},
+        }},
+    });
+    EXPECT_THAT(weights.get_shape(), ::testing::ElementsAre(3, 1, 2, 2));
+
+    Tensor bias({3, 1}, 1.0f);
+
+    printf("result: %s\n", Conv2DLayer(weights, bias, 1, 0, 3).forward(input).to_string().c_str());
+
+    EXPECT_EQ(Conv2DLayer(weights, bias, 1, 0, 3).forward(input),
+              Tensor::from_vector(tensor4d{
+                  {{{
+                      {8.0, 10.0, 12.0},
+                      {16.0, 18.0, 20.0},
+                      {24.0, 26.0, 28.0},
+                  }}},
+                  {{
+                      {{12.0, 14.0, 16.0},
+                       {16.0, 18.0, 20.0},
+                       {20.0, 22.0, 24.0}},
+                  }},
+                  {{
+                      {{8.0, 10.0, 12.0},
+                       {16.0, 18.0, 20.0},
+                       {24.0, 26.0, 28.0}},
+                  }},
+              }));
+}
+
 TEST(NeuralNetTest, TestMaxPooling2DLayer_WithStride)
 {
     Tensor input = Tensor::from_vector(tensor4d{
