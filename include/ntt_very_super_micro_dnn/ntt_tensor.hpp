@@ -185,6 +185,18 @@ namespace
             size_t m_padding;
         };
 
+        class MaxPooling2DLayer : public Layer
+        {
+        public:
+            MaxPooling2DLayer(const size_t &poolSize, const size_t &stride = 1, const size_t &padding = 0);
+            Tensor forward(const Tensor &input) override;
+
+        private:
+            size_t m_poolSize;
+            size_t m_stride;
+            size_t m_padding;
+        };
+
 #ifdef NTT_MICRO_NN_IMPLEMENTATION
         static float getMax(const float &a, const float &b)
         {
@@ -1222,6 +1234,88 @@ namespace
                                                    result.get_element({i, j, l, m}) + value +
                                                        bias_value / m_weights.get_shape()[1]);
                             }
+                        }
+                    }
+                }
+            }
+
+            return result;
+        }
+
+        MaxPooling2DLayer::MaxPooling2DLayer(const size_t &poolSize, const size_t &stride, const size_t &padding)
+            : m_poolSize(poolSize), m_stride(stride), m_padding(padding)
+        {
+        }
+
+        Tensor MaxPooling2DLayer::forward(const Tensor &input)
+        {
+            if (input.get_shape().size() != 4)
+            {
+                char buffer[NTT_ERROR_MESSAGE_SIZE];
+                snprintf(buffer, sizeof(buffer),
+                         "Input must be a 4D tensor: %s",
+                         Shape::convert_shape_to_string(input.get_shape()).c_str());
+            }
+
+            Tensor extractInput = input;
+
+            if (m_padding > 0)
+            {
+                shape_type paddedShape = input.get_shape();
+                paddedShape[2] += 2 * m_padding;
+                paddedShape[3] += 2 * m_padding;
+                Tensor paddedInput(paddedShape, 0.0f);
+
+                for (size_t i = 0; i < input.get_shape()[0]; i++)
+                {
+                    for (size_t j = 0; j < input.get_shape()[1]; j++)
+                    {
+                        for (size_t k = 0; k < input.get_shape()[2]; k++)
+                        {
+                            for (size_t l = 0; l < input.get_shape()[3]; l++)
+                            {
+                                paddedInput.set_element({i, j, k + m_padding, l + m_padding},
+                                                        input.get_element({i, j, k, l}));
+                            }
+                        }
+                    }
+                }
+
+                extractInput = paddedInput;
+            }
+
+            shape_type outputShape = input.get_shape();
+            outputShape[2] = (extractInput.get_shape()[2] - m_poolSize) / m_stride + 1;
+            outputShape[3] = (extractInput.get_shape()[3] - m_poolSize) / m_stride + 1;
+
+            Tensor result(outputShape, 0.0f);
+
+            for (size_t i = 0; i < extractInput.get_shape()[0]; i++)
+            {
+                for (size_t j = 0; j < extractInput.get_shape()[1]; j++)
+                {
+                    for (size_t k = 0; k < result.get_shape()[2]; k++)
+                    {
+                        for (size_t l = 0; l < result.get_shape()[3]; l++)
+                        {
+                            size_t input_x = k * m_stride;
+                            size_t input_y = l * m_stride;
+
+                            float maxValue = extractInput.get_element({i, j, input_x, input_y});
+
+                            for (size_t m = 0; m < m_poolSize; m++)
+                            {
+                                for (size_t n = 0; n < m_poolSize; n++)
+                                {
+                                    float value = extractInput.get_element({i, j, input_x + m, input_y + n});
+                                    if (value > maxValue)
+                                    {
+                                        maxValue = value;
+                                    }
+                                }
+                            }
+
+                            result.set_element({i, j, k, l}, maxValue);
                         }
                     }
                 }

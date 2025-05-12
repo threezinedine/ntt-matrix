@@ -643,3 +643,80 @@ TEST(NeuralNetTest, TestFlattenLayer)
                                            {7.0},
                                            {8.0}}));
 }
+
+TEST(NeuralNetTest, TestMaxPooling2DLayer)
+{
+    // shape [2, 1, 4, 4]
+    Tensor input = Tensor::from_vector(tensor4d{
+        {{
+            {1.0, 2.0, 3.0, 4.0},
+            {5.0, 6.0, 7.0, 8.0},
+            {9.0, 10.0, 11.0, 12.0},
+            {13.0, 14.0, 15.0, 16.0},
+        }},
+        {{
+            {17.0, 18.0, 19.0, 20.0},
+            {21.0, 22.0, 23.0, 24.0},
+            {25.0, 26.0, 27.0, 28.0},
+            {29.0, 30.0, 31.0, 32.0},
+        }}});
+
+    EXPECT_THAT(input.get_shape(), ::testing::ElementsAre(2, 1, 4, 4));
+
+    EXPECT_EQ(MaxPooling2DLayer(2, 2).forward(input),
+              Tensor::from_vector(tensor4d{
+                  {
+                      {{6.0, 8.0},
+                       {14.0, 16.0}},
+                  },
+                  {
+                      {{22.0, 24.0},
+                       {30.0, 32.0}},
+                  }}));
+}
+
+TEST(NeuralNetTest, TestMaxPooling2DLayer_WithStride)
+{
+    Tensor input = Tensor::from_vector(tensor4d{
+        {{
+            {1.0, 2.0, 3.0, 4.0},
+            {5.0, 6.0, 7.0, 8.0},
+            {9.0, 10.0, 11.0, 12.0},
+            {13.0, 14.0, 15.0, 16.0},
+        }},
+    });
+
+    EXPECT_THAT(input.get_shape(), ::testing::ElementsAre(1, 1, 4, 4));
+
+    EXPECT_EQ(MaxPooling2DLayer(2, 1).forward(input),
+              Tensor::from_vector(tensor4d{
+                  {
+                      {{6.0, 7.0, 8.0},
+                       {10.0, 11.0, 12.0},
+                       {14.0, 15.0, 16.0}},
+                  }}));
+}
+
+TEST(NeuralNetTest, TestMaxPooling2DLayer_WithPadding)
+{
+    Tensor input = Tensor::from_vector(tensor4d{
+        {{
+            {1.0, 2.0, 3.0, 4.0},
+            {5.0, 6.0, 7.0, 8.0},
+            {9.0, 10.0, 11.0, 12.0},
+            {13.0, 14.0, 15.0, 16.0},
+        }},
+    });
+
+    EXPECT_THAT(input.get_shape(), ::testing::ElementsAre(1, 1, 4, 4));
+
+    EXPECT_EQ(MaxPooling2DLayer(2, 1, 1).forward(input),
+              Tensor::from_vector(tensor4d{
+                  {
+                      {{1.0, 2.0, 3.0, 4.0, 4.0},
+                       {5.0, 6.0, 7.0, 8.0, 8.0},
+                       {9.0, 10.0, 11.0, 12.0, 12.0},
+                       {13.0, 14.0, 15.0, 16.0, 16.0},
+                       {13.0, 14.0, 15.0, 16.0, 16.0}},
+                  }}));
+}
