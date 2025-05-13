@@ -14,6 +14,9 @@ ntt::Tensor {{name}} = ntt::Tensor::from_vector(
 );
 """
 
+absolute_path = os.path.abspath(args.input)
+output_dir = os.path.dirname(absolute_path)
+
 data = np.load(args.input)
 input_file_name_only = os.path.basename(args.input).split(".")[0]
 len_of_shape = len(data.shape)
@@ -34,7 +37,7 @@ template = Template(template_string)
 result = template.render(data=new_data, name=input_file_name_only, type=type_data)
 
 output_file_name = f"{input_file_name_only}.tasm"
-with open(output_file_name, "w") as f:
+with open(os.path.join(output_dir, output_file_name), "w") as f:
     f.write(result)
 
 output_binary_file_name = f"{input_file_name_only}.bin"
@@ -46,5 +49,5 @@ for i in range(len_of_shape):
 bin_data.append(data.flatten().tobytes())
 bin_data = b"".join(bin_data)
 
-with open(output_binary_file_name, "wb") as f:
+with open(os.path.join(output_dir, output_binary_file_name), "wb") as f:
     f.write(bin_data)
