@@ -717,8 +717,6 @@ TEST(NeuralNetTest, TestMaxPoolingWithGroup)
 
     Tensor bias({3, 1}, 1.0f);
 
-    printf("result: %s\n", Conv2DLayer(weights, bias, 1, 0, 3).forward(input).to_string().c_str());
-
     EXPECT_EQ(Conv2DLayer(weights, bias, 1, 0, 3).forward(input),
               Tensor::from_vector(tensor4d{
                   {{{
@@ -807,4 +805,17 @@ TEST(NeuralNetTest, TestGlobalAveragePooling2DLayer)
                   {{{1.0}}},
                   {{{0.3333333333333333}}},
               }));
+}
+
+TEST(TensorTest, TestToBytes)
+{
+    Tensor input = Tensor::from_vector(tensor4d{
+        {{{{3.2, 2.1, 1.0},
+           {-0.3, 0.2, 0.1},
+           {0.3, 0.2, 0.1}}}},
+    });
+
+    input.save("test.bin"); // -> shape_size (u8) + 4 * shape_siz  + 12 * 4 = 48 bytes
+    Tensor output = Tensor::from_bytes("test.bin");
+    EXPECT_EQ(input, output);
 }

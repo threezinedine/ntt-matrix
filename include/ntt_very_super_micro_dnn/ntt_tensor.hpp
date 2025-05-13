@@ -18,9 +18,11 @@
 #include <cstring>
 #include <string>
 #include <cstdlib>
+#include <fstream>
 #endif // NTT_MICRO_NN_IMPLEMENTATION
 
 #define NTT_ERROR_MESSAGE_SIZE 1994
+#define NTT_DEFAULT_MAX_SIZE 19941994
 #define NTT_DEFAULT_VALUE 0.0f
 
 #ifdef NTT_MICRO_NN_IMPLEMENTATION
@@ -36,6 +38,18 @@ namespace
         using tensor2d = std::vector<vec>;
         using tensor3d = std::vector<tensor2d>;
         using tensor4d = std::vector<tensor3d>;
+
+        union TensorData
+        {
+            float value;
+            unsigned char bytes[sizeof(float)];
+        };
+
+        union TensorShapeData
+        {
+            unsigned char bytes[sizeof(size_t)];
+            size_t value;
+        };
 
         class Layer;
 
@@ -91,6 +105,8 @@ namespace
             Tensor divide(const float &other) const;
             Tensor subtract(const Tensor &other) const;
 
+            void save(const std::string &filename) const;
+
         public:
             bool operator==(const Tensor &other) const;
             void operator=(const Tensor &other);
@@ -106,6 +122,8 @@ namespace
             static Tensor from_vector(const tensor2d &data);
             static Tensor from_vector(const tensor3d &data);
             static Tensor from_vector(const tensor4d &data);
+
+            static Tensor from_bytes(const std::string &filename);
 
         private:
             static size_t reloadTotalElements(const shape_type &shape);
@@ -872,6 +890,59 @@ namespace
                 shape.next();
             }
 
+            return result;
+        }
+
+        void Tensor::save(const std::string &filename) const
+        {
+            unsigned char shape_size = m_shape.size();
+            size_t total_size = 1 + shape_size * sizeof(size_t) + m_totalElements * sizeof(float);
+            unsigned char *full_tensor_data =
+                (unsigned char *)malloc(sizeof(unsigned char) * total_size);
+
+            size_t current_index = 0;
+            full_tensor_data[current_index++] = shape_size;
+            for (size_t i = 0; i < shape_size; i++)
+            {
+                TensorShapeData data;
+                data.value = m_shape[i];
+                memcpy(full_tensor_data + current_index, &data.bytes, sizeof(data.bytes));
+                current_index += sizeof(data.bytes);
+            }
+
+            memcpy(full_tensor_data + current_index, m_data, m_totalElements * sizeof(float));
+
+            std::ofstream file(filename, std::ios::binary | std::ios::ate);
+            file.write(reinterpret_cast<const char *>(full_tensor_data), total_size);
+            file.close();
+
+            free(full_tensor_data);
+        }
+
+        Tensor Tensor::from_bytes(const std::string &filename)
+        {
+            std::ifstream file(filename, std::ios::binary | std::ios::ate);
+            size_t file_size = file.tellg();
+            file.seekg(0, std::ios::beg);
+            unsigned char *full_tensor_data = (unsigned char *)malloc(sizeof(unsigned char) * file_size);
+            file.read(reinterpret_cast<char *>(full_tensor_data), file_size);
+            file.close();
+
+            size_t current_index = 0;
+            size_t shape_size = full_tensor_data[current_index++];
+            shape_type shape(shape_size);
+            for (size_t i = 0; i < shape_size; i++)
+            {
+                TensorShapeData data;
+                memcpy(&data.bytes, full_tensor_data + current_index, sizeof(data.bytes));
+                current_index += sizeof(data.bytes);
+                shape[i] = data.value;
+            }
+
+            Tensor result(shape, 0.0f);
+            memcpy(result.m_data, full_tensor_data + current_index, result.getTotalElements() * sizeof(float));
+
+            free(full_tensor_data);
             return result;
         }
 

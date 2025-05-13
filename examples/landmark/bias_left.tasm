@@ -1,0 +1,4 @@
+
+ntt::Tensor bias_left = ntt::Tensor::from_vector(
+    ntt::vec{0.0164947509765625}
+);

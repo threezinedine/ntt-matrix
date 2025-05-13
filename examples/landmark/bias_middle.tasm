@@ -1,0 +1,4 @@
+
+ntt::Tensor bias_middle = ntt::Tensor::from_vector(
+    ntt::vec{0.007320404052734375}
+);
