@@ -9,16 +9,16 @@ using namespace ntt;
 
 int main(void)
 {
-#include "conv2d1_weight.tasm"
-#include "conv2d1_bias.tasm"
-#include "fc4_weight.tasm"
-#include "fc4_bias.tasm"
+    Tensor conv2d1_weight = Tensor::from_bytes("C:/Users/Acer/Project/ntt-very-super-micro-dnn/examples/mnist_conv/conv2d1_weight.bin");
+    Tensor conv2d1_bias = Tensor::from_bytes("C:/Users/Acer/Project/ntt-very-super-micro-dnn/examples/mnist_conv/conv2d1_bias.bin");
+    Tensor fc4_weight = Tensor::from_bytes("C:/Users/Acer/Project/ntt-very-super-micro-dnn/examples/mnist_conv/fc4_weight.bin");
+    Tensor fc4_bias = Tensor::from_bytes("C:/Users/Acer/Project/ntt-very-super-micro-dnn/examples/mnist_conv/fc4_bias.bin");
 
     // Matrix input = Matrix::create_from_vector_vector({{1.0f, 2.0f, 3.0f}}).toShape(3, 1);
     int width, height, channels;
     unsigned char *data = stbi_load(
-        // "C:/Users/Acer/Project/ntt-very-super-micro-dnn/examples/test_idx_9397_label_9.png",
-        "C:/Users/Acer/Project/ntt-very-super-micro-dnn/examples/test_idx_9879_label_0.png",
+        "C:/Users/Acer/Project/ntt-very-super-micro-dnn/examples/test_idx_9397_label_9.png",
+        // "C:/Users/Acer/Project/ntt-very-super-micro-dnn/examples/test_idx_9879_label_0.png",
         // "C:/Users/Acer/Project/ntt-very-super-micro-dnn/examples/test_idx_2691_label_8.png",
         // "C:/Users/Acer/Project/ntt-very-super-micro-dnn/examples/test_idx_9915_label_4.png",
         &width, &height, &channels, 0);

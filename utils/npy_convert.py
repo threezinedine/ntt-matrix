@@ -17,8 +17,8 @@ ntt::Tensor {{name}} = ntt::Tensor::from_vector(
 data = np.load(args.input)
 input_file_name_only = os.path.basename(args.input).split(".")[0]
 len_of_shape = len(data.shape)
-data = data.tolist()
-new_data = str(data).replace("[", "{").replace("]", "}")
+data_list = data.tolist()
+new_data = str(data_list).replace("[", "{").replace("]", "}")
 
 if len_of_shape == 1:
     type_data = "ntt::vec"
@@ -38,5 +38,13 @@ with open(output_file_name, "w") as f:
     f.write(result)
 
 output_binary_file_name = f"{input_file_name_only}.bin"
+
+bin_data = [len_of_shape.to_bytes(1, "big")]
+for i in range(len_of_shape):
+    bin_data.append(data.shape[i].to_bytes(8, "little"))
+
+bin_data.append(data.flatten().tobytes())
+bin_data = b"".join(bin_data)
+
 with open(output_binary_file_name, "wb") as f:
-    pass
+    f.write(bin_data)

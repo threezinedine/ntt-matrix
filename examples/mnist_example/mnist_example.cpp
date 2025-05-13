@@ -9,18 +9,18 @@ using namespace ntt;
 
 int main(void)
 {
-#include "fc1_weight.tasm"
-#include "fc1_bias.tasm"
-#include "fc2_weight.tasm"
-#include "fc2_bias.tasm"
-#include "fc3_weight.tasm"
-#include "fc3_bias.tasm"
+    Tensor fc1_weight = Tensor::from_bytes("C:/Users/Acer/Project/ntt-very-super-micro-dnn/examples/mnist_example/fc1_weight.bin");
+    Tensor fc1_bias = Tensor::from_bytes("C:/Users/Acer/Project/ntt-very-super-micro-dnn/examples/mnist_example/fc1_bias.bin");
+    Tensor fc2_weight = Tensor::from_bytes("C:/Users/Acer/Project/ntt-very-super-micro-dnn/examples/mnist_example/fc2_weight.bin");
+    Tensor fc2_bias = Tensor::from_bytes("C:/Users/Acer/Project/ntt-very-super-micro-dnn/examples/mnist_example/fc2_bias.bin");
+    Tensor fc3_weight = Tensor::from_bytes("C:/Users/Acer/Project/ntt-very-super-micro-dnn/examples/mnist_example/fc3_weight.bin");
+    Tensor fc3_bias = Tensor::from_bytes("C:/Users/Acer/Project/ntt-very-super-micro-dnn/examples/mnist_example/fc3_bias.bin");
 
     // Matrix input = Matrix::create_from_vector_vector({{1.0f, 2.0f, 3.0f}}).toShape(3, 1);
     int width, height, channels;
     unsigned char *data = stbi_load(
-        // "C:/Users/Acer/Project/ntt-very-super-micro-dnn/examples/test_idx_2691_label_8.png",
-        "C:/Users/Acer/Project/ntt-very-super-micro-dnn/examples/test_idx_9915_label_4.png",
+        "C:/Users/Acer/Project/ntt-very-super-micro-dnn/examples/test_idx_2691_label_8.png",
+        // "C:/Users/Acer/Project/ntt-very-super-micro-dnn/examples/test_idx_9915_label_4.png",
         &width, &height, &channels, 0);
     Tensor inputMatrix({static_cast<size_t>(height), static_cast<size_t>(width)});
     if (data)

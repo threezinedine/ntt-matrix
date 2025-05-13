@@ -922,6 +922,15 @@ namespace
         Tensor Tensor::from_bytes(const std::string &filename)
         {
             std::ifstream file(filename, std::ios::binary | std::ios::ate);
+            if (!file.is_open())
+            {
+                char buffer[NTT_ERROR_MESSAGE_SIZE];
+                snprintf(
+                    buffer, sizeof(buffer),
+                    "Failed to open file: %s",
+                    filename.c_str());
+                throw std::runtime_error(buffer);
+            }
             size_t file_size = file.tellg();
             file.seekg(0, std::ios::beg);
             unsigned char *full_tensor_data = (unsigned char *)malloc(sizeof(unsigned char) * file_size);
